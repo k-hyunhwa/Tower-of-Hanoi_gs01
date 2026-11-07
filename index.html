@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관산중학교 하노이의 탑 챌린지</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Pretendard & Inter 폰트 -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <style>
+    * {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+
+    body {
+      touch-action: manipulation;
+    }
+
+    /* 네온 글로우 및 그림자 */
+    .glow-indigo {
+      box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.5);
+    }
+    .glow-green {
+      box-shadow: 0 0 16px 2px rgba(34, 197, 94, 0.7);
+    }
+    
+    /* 펄스 애니메이션 */
+    @keyframes ledPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.75; transform: scale(1.15); }
+    }
+    .led-active {
+      animation: ledPulse 1.8s infinite ease-in-out;
+    }
+    
+    /* 가로 바 형태 램프 네온 글로우 */
+    .lamp-bar-on {
+      box-shadow: 0 0 12px 2px rgba(52, 211, 153, 0.8), 0 0 4px rgba(255, 255, 255, 0.6);
+      animation: barPulse 1.8s infinite ease-in-out;
+    }
+    @keyframes barPulse {
+      0%, 100% { opacity: 1; filter: brightness(1.1); }
+      50% { opacity: 0.8; filter: brightness(0.9); }
+    }
+
+    /* 드래그 및 호버 시각 피드백 */
+    .peg-drop-target {
+      background-color: rgba(99, 102, 241, 0.15) !important;
+      border-color: rgba(129, 140, 248, 0.8) !important;
+    }
+
+    /* 부드러운 스크롤바 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen h-[100dvh] flex flex-col justify-between overflow-x-hidden relative selection:bg-indigo-500 selection:text-white">
+
+  <!-- 배경 오로라 이펙트 -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-32 -left-32 w-80 md:w-96 h-80 md:h-96 bg-indigo-600/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -right-32 w-80 md:w-96 h-80 md:h-96 bg-purple-600/20 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-32 left-1/3 w-80 md:w-96 h-80 md:h-96 bg-cyan-600/20 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- 관산중학교 학생 로그인 초기 화면 모달 -->
+  <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl">
+    <div class="bg-slate-900/95 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col items-center text-center">
+      <div class="absolute -top-24 -left-24 w-52 h-52 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-52 h-52 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- 학교 로고 & 타이틀 -->
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-xl shadow-indigo-500/30 mb-3 border border-indigo-400/30">
+        <i data-lucide="graduation-cap" class="w-8 h-8 text-white"></i>
+      </div>
+      <div class="inline-block px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-2">
+        관산중학교 수학 탐구 활동
+      </div>
+      <h2 class="text-xl sm:text-2xl font-black text-white mb-1" id="loginTitle">하노이의 탑 챌린지</h2>
+      <p class="text-xs sm:text-sm text-slate-400 mb-6" id="loginDesc">학생 확인을 위해 학번과 이름을 입력해주세요.</p>
+
+      <!-- 입력 폼 -->
+      <form id="studentLoginForm" class="w-full space-y-4 text-left">
+        <div>
+          <label for="studentIdInput" class="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+            <i data-lucide="hash" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span id="loginLabelId">학번 (예: 10325 또는 1-3-25)</span>
+          </label>
+          <input 
+            type="text" 
+            id="studentIdInput" 
+            required
+            maxlength="10"
+            placeholder="학번을 입력하세요"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 text-white placeholder-slate-500 text-sm outline-none transition-all"
+          />
+        </div>
+
+        <div>
+          <label for="studentNameInput" class="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+            <i data-lucide="user" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span id="loginLabelName">이름</span>
+          </label>
+          <input 
+            type="text" 
+            id="studentNameInput" 
+            required
+            maxlength="10"
+            placeholder="이름을 입력하세요"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 text-white placeholder-slate-500 text-sm outline-none transition-all"
+          />
+        </div>
+
+        <div id="loginErrorText" class="text-rose-400 text-xs font-medium min-h-[16px] hidden"></div>
+
+        <button 
+          type="submit" 
+          class="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all text-sm flex items-center justify-center gap-2 mt-2">
+          <span id="loginBtnLabel">게임 시작하기</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <div class="mt-4 text-[11px] text-slate-500">
+        관산중학교 학생들의 창의적 문제해결력 신장을 위한 웹 프로그램
+      </div>
+    </div>
+  </div>
+
+  <!-- 상단 컨트롤 및 스테이지 선택 바 -->
+  <header class="relative z-10 w-full max-w-5xl mx-auto px-3 sm:px-4 pt-2.5 sm:pt-4 flex-shrink-0">
+    <!-- 다국어 선택 바 및 로그인 학생 정보 배지 -->
+    <div class="flex items-center justify-between mb-2 px-1 gap-2 flex-wrap sm:flex-nowrap">
+      <div class="flex items-center gap-2">
+        <div id="studentBadge" class="hidden items-center gap-1.5 bg-slate-900/90 border border-indigo-500/30 px-2.5 py-1 rounded-xl text-xs font-medium text-slate-300 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="text-indigo-300 font-bold">관산중</span>
+          <span id="displayStudentInfo" class="text-white font-semibold"></span>
+          <button id="logoutBtn" title="학생 변경" class="ml-1 text-slate-400 hover:text-rose-400 transition-colors p-0.5">
+            <i data-lucide="log-out" class="w-3 h-3"></i>
+          </button>
+        </div>
+        <div class="text-[10px] sm:text-xs font-semibold text-slate-400 flex items-center gap-1.5 hidden md:flex">
+          <i data-lucide="globe" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span>언어 병기 선택 / Secondary Language</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800 backdrop-blur-md" id="langSelector">
+        <button data-lang="ko" class="lang-btn px-2.5 py-1 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-sm">한국어</button>
+        <button data-lang="en" class="lang-btn px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all">English</button>
+        <button data-lang="zh" class="lang-btn px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all">中文</button>
+        <button data-lang="ru" class="lang-btn px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all">Русский</button>
+      </div>
+    </div>
+
+    <!-- 타이틀 바 및 주요 조작 버튼 -->
+    <div class="flex items-center justify-between gap-2 bg-slate-900/70 border border-slate-800 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl shadow-xl">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
+          <i data-lucide="layers" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-extrabold text-white tracking-tight flex items-center gap-1.5" id="headerTitle">
+            하노이의 탑 챌린지
+          </h1>
+          <p class="text-[10px] sm:text-xs text-slate-400" id="headerSub">
+            최소 이동 횟수로 모든 원판을 목표 기둥(C)으로 옮기세요!
+          </p>
+        </div>
+      </div>
+
+      <!-- 우측 컨트롤 버튼들 -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button id="tutorialBtn" class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 font-semibold rounded-xl text-xs transition-all active:scale-95 shadow-sm">
+          <i data-lucide="book-open" class="w-4 h-4 text-indigo-400"></i>
+          <span id="btnTutorialText">게임 방법</span>
+        </button>
+
+        <button id="pauseBtn" class="flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs transition-all active:scale-95">
+          <i data-lucide="pause" class="w-3.5 h-3.5" id="pauseIcon"></i>
+          <span id="pauseBtnText" class="hidden sm:inline">일시정지</span>
+        </button>
+
+        <button id="restartBtn" class="flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs transition-all active:scale-95">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span id="restartBtnText" class="hidden sm:inline">다시시작</span>
+        </button>
+
+        <button id="resetRecordsBtn" title="클리어 기록 초기화" class="p-1.5 bg-slate-800/80 hover:bg-rose-950/40 border border-slate-700/80 hover:border-rose-800/60 text-slate-400 hover:text-rose-400 rounded-xl transition-all">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3단계 ~ 12단계 스테이지 선택 버튼 그리드 및 성공 LED 램프 -->
+    <div class="mt-2.5 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-2 sm:p-2.5 backdrop-blur-md">
+      <div class="flex items-center justify-between text-[11px] text-slate-400 font-semibold mb-1.5 px-1">
+        <span class="flex items-center gap-1.5">
+          <i data-lucide="target" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span id="stageSelectLabel">단계 선택 (3 ~ 12단)</span>
+        </span>
+        <span class="text-[10px] text-emerald-400 flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block led-active"></span>
+          <span id="clearedCountText">성공: 0 / 10</span>
+        </span>
+      </div>
+
+      <!-- 10열 (모바일 5열 2행, PC 10열 1행) -->
+      <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5 sm:gap-2" id="stageButtonsContainer">
+        <!-- JS로 동적 생성됨 (3 ~ 12단 버튼 + LED 램프) -->
+      </div>
+    </div>
+  </header>
+
+  <!-- 대시보드 상태 패널 (타이머, 이동 횟수, 힌트 등) -->
+  <section class="relative z-10 w-full max-w-5xl mx-auto px-3 sm:px-4 py-2 flex-shrink-0">
+    <div class="grid grid-cols-3 gap-2 bg-slate-900/80 border border-slate-800/90 rounded-2xl p-2.5 sm:p-3 backdrop-blur-md shadow-lg text-center items-center">
+      <!-- 1. 현재 스테이지 & 최소 이동 수 -->
+      <div class="flex flex-col items-center justify-center">
+        <span class="text-[10px] sm:text-xs text-slate-400 font-medium" id="statStageLabel">현재 단계 / 최소 이동</span>
+        <div class="text-sm sm:text-base font-black text-indigo-400 mt-0.5">
+          <span id="currentStageText">3단</span> 
+          <span class="text-xs text-slate-400 font-normal">/ <span id="minMovesText">7</span>회</span>
+        </div>
+      </div>
+
+      <!-- 2. 내 이동 횟수 -->
+      <div class="flex flex-col items-center justify-center border-x border-slate-800 px-1">
+        <span class="text-[10px] sm:text-xs text-slate-400 font-medium" id="statMovesLabel">내 이동 횟수</span>
+        <div class="text-lg sm:text-xl font-black text-white mt-0.5 tracking-tight" id="moveCountText">
+          0
+        </div>
+      </div>
+
+      <!-- 3. 남은 시간 및 프로그레스 바 -->
+      <div class="flex flex-col items-center justify-center">
+        <div class="flex items-center gap-1 text-[10px] sm:text-xs text-slate-400 font-medium">
+          <i data-lucide="clock" class="w-3 h-3 text-amber-400"></i>
+          <span id="statTimerLabel">남은 시간</span>
+        </div>
+        <div class="text-sm sm:text-base font-extrabold text-amber-300 mt-0.5 font-mono" id="timeRemainingText">
+          00:50
+        </div>
+        <!-- 타임바 -->
+        <div class="w-full bg-slate-800 h-1.5 rounded-full mt-1.5 overflow-hidden">
+          <div id="timeProgressBar" class="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-500 transition-all duration-300 w-full"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 게임 메인 보드 (하노이 탑 기둥 및 원판 영역) -->
+  <main class="relative z-10 w-full max-w-5xl mx-auto px-3 sm:px-4 flex-1 flex flex-col justify-center my-auto min-h-[260px] sm:min-h-[320px]">
+    <div class="relative w-full h-[260px] sm:h-[340px] md:h-[380px] bg-slate-900/60 border border-slate-800 rounded-3xl p-3 sm:p-5 backdrop-blur-md flex items-end justify-around gap-2 sm:gap-4 shadow-2xl overflow-hidden" id="gameBoardContainer">
+
+      <!-- 일시정지 오버레이 -->
+      <div id="pauseOverlay" class="absolute inset-0 bg-slate-950/80 backdrop-blur-md z-30 flex flex-col items-center justify-center hidden">
+        <div class="w-14 h-14 rounded-2xl bg-indigo-600/30 border border-indigo-500/50 flex items-center justify-center text-indigo-400 mb-3 glow-indigo">
+          <i data-lucide="pause" class="w-7 h-7"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-1" id="pauseOverlayTitle">일시정지됨</h3>
+        <p class="text-xs text-slate-400 mb-4" id="pauseOverlaySub">시간이 멈추었습니다. 게임을 계속하시겠습니까?</p>
+        <button id="resumeBtn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition-all shadow-lg shadow-indigo-600/30 flex items-center gap-1.5">
+          <i data-lucide="play" class="w-4 h-4"></i>
+          <span id="resumeBtnText">계속하기</span>
+        </button>
+      </div>
+
+      <!-- 기둥 0 (A : 출발) -->
+      <div class="peg-container flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group transition-all" data-peg-index="0">
+        <!-- 기둥 수직 막대 -->
+        <div class="absolute bottom-6 w-3 sm:w-4 bg-gradient-to-t from-slate-700 to-slate-600 rounded-t-full shadow-inner border-t border-slate-500 pointer-events-none" style="height: 82%;"></div>
+        <!-- 원판 쌓이는 컨테이너 (바닥 밀착: justify-end) -->
+        <div id="diskStack-0" class="w-full flex-1 flex flex-col justify-end items-center z-10 pointer-events-none pb-0"></div>
+        <!-- 바닥 받침대 -->
+        <div class="w-full h-6 sm:h-7 bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-center shadow-md relative z-10 group-hover:border-indigo-500 transition-colors">
+          <span class="text-xs sm:text-sm font-black text-indigo-300 flex items-center gap-1" id="pegLabel0">
+            A <span class="text-[10px] text-slate-400 font-medium">출발</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- 기둥 1 (B : 경유) -->
+      <div class="peg-container flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group transition-all" data-peg-index="1">
+        <!-- 기둥 수직 막대 -->
+        <div class="absolute bottom-6 w-3 sm:w-4 bg-gradient-to-t from-slate-700 to-slate-600 rounded-t-full shadow-inner border-t border-slate-500 pointer-events-none" style="height: 82%;"></div>
+        <!-- 원판 쌓이는 컨테이너 -->
+        <div id="diskStack-1" class="w-full flex-1 flex flex-col justify-end items-center z-10 pointer-events-none pb-0"></div>
+        <!-- 바닥 받침대 -->
+        <div class="w-full h-6 sm:h-7 bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-center shadow-md relative z-10 group-hover:border-indigo-500 transition-colors">
+          <span class="text-xs sm:text-sm font-black text-indigo-300 flex items-center gap-1" id="pegLabel1">
+            B <span class="text-[10px] text-slate-400 font-medium">경유</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- 기둥 2 (C : 목표) -->
+      <div class="peg-container flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group transition-all" data-peg-index="2">
+        <!-- 기둥 수직 막대 -->
+        <div class="absolute bottom-6 w-3 sm:w-4 bg-gradient-to-t from-slate-700 to-slate-600 rounded-t-full shadow-inner border-t border-slate-500 pointer-events-none" style="height: 82%;"></div>
+        <!-- 원판 쌓이는 컨테이너 -->
+        <div id="diskStack-2" class="w-full flex-1 flex flex-col justify-end items-center z-10 pointer-events-none pb-0"></div>
+        <!-- 바닥 받침대 -->
+        <div class="w-full h-6 sm:h-7 bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-center shadow-md relative z-10 group-hover:border-emerald-500 transition-colors">
+          <span class="text-xs sm:text-sm font-black text-emerald-400 flex items-center gap-1" id="pegLabel2">
+            C <span class="text-[10px] text-emerald-300/80 font-medium">목표</span>
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 안내 메시지 및 힌트 텍스트 -->
+    <div class="mt-2 text-center">
+      <p id="gameHintMsg" class="text-[11px] sm:text-xs text-slate-400 font-medium">
+        원판을 클릭하거나 드래그하여 다른 기둥으로 옮기세요. (작은 원판 위에 큰 원판 금지)
+      </p>
+    </div>
+  </main>
+
+  <!-- 하단 정보 및 푸터 -->
+  <footer class="relative z-10 w-full max-w-5xl mx-auto px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs text-slate-500 flex-shrink-0">
+    <div id="footerText">
+      관산중학교 수학 탐구 교실 &bull; 수학적 귀납법과 재귀 알고리즘 챌린지
+    </div>
+  </footer>
+
+  <!-- 우측 하단 플로팅 튜토리얼 퀵 버튼 (모바일/태블릿 등 한손 접근용) -->
+  <button id="floatingTutBtn" title="게임 방법" class="fixed bottom-4 right-4 z-40 w-11 h-11 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-xl shadow-indigo-600/40 border border-indigo-400/30 hover:scale-105 active:scale-95 transition-all">
+    <i data-lucide="help-circle" class="w-6 h-6"></i>
+  </button>
+
+  <!-- ================= 튜토리얼 (게임 방법) 모달 ================= -->
+  <div id="tutorialModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden relative">
+      <!-- 모달 헤더 -->
+      <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
+            <i data-lucide="book-open" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-white" id="tutModalTitle">하노이의 탑 규칙 및 플레이 방법</h2>
+            <p class="text-[10px] sm:text-xs text-slate-400" id="tutModalSub">고대 수학 퍼즐의 원리와 필승 공식</p>
+          </div>
+        </div>
+        <button id="closeTutorialBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- 모달 바디 (스크롤 가능) -->
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs sm:text-sm text-slate-300">
+        
+        <!-- 3대 핵심 규칙 -->
+        <div class="bg-slate-850 bg-slate-800/40 border border-slate-700/60 rounded-2xl p-3.5 space-y-2.5">
+          <h3 class="font-bold text-indigo-300 text-xs sm:text-sm flex items-center gap-1.5" id="tutRulesTitle">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-indigo-400"></i>
+            하노이의 탑 3대 기본 규칙
+          </h3>
+          <ul class="space-y-1.5 text-slate-300 text-xs sm:text-xs leading-relaxed list-disc list-inside">
+            <li id="tutRule1"><strong>규칙 1:</strong> 한 번에 기둥 맨 위에 있는 원판 1개만 옮길 수 있습니다.</li>
+            <li id="tutRule2"><strong>규칙 2:</strong> 절대로 <strong>작은 원판 위에 큰 원판</strong>을 쌓을 수 없습니다.</li>
+            <li id="tutRule3"><strong>규칙 3:</strong> 출발 기둥(A)의 모든 원판을 최종 목표 기둥(C)으로 동일한 순서로 옮겨야 합니다.</li>
+          </ul>
+        </div>
+
+        <!-- 필승 팁 & 수학 공식 -->
+        <div class="bg-indigo-950/20 border border-indigo-500/20 rounded-2xl p-3.5 space-y-2">
+          <h3 class="font-bold text-indigo-400 text-xs sm:text-sm flex items-center gap-1.5" id="tutMathTitle">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
+            최소 이동 횟수 공식과 필승 전략
+          </h3>
+          <p class="text-xs text-slate-300" id="tutMathDesc1">
+            원판의 개수가 $n$개일 때, 최소 이동 횟수는 <strong>$2^n - 1$</strong>번입니다.
+          </p>
+          <div class="p-2 bg-slate-900/80 rounded-xl text-[11px] font-mono text-indigo-300 border border-slate-800 flex justify-between">
+            <span>3단: 7회</span>
+            <span>4단: 15회</span>
+            <span>5단: 31회</span>
+            <span>8단: 255회</span>
+            <span>12단: 4095회</span>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-normal" id="tutMathDesc2">
+            💡 <strong>첫 수 공식:</strong> 총 원판 개수가 <strong>홀수</strong>라면 1번 원판을 바로 <strong>C 기둥</strong>으로, <strong>짝수</strong>라면 <strong>B 기둥</strong>으로 먼저 옮기면 최소 경로로 완성됩니다!
+          </p>
+        </div>
+
+        <!-- 3단계 인터랙티브 자동 시연 데모 (Auto Demo) -->
+        <div class="border border-slate-800 rounded-2xl p-3.5 bg-slate-950/40">
+          <div class="flex items-center justify-between mb-2">
+            <div class="font-bold text-xs text-slate-200 flex items-center gap-1.5">
+              <i data-lucide="play-circle" class="w-4 h-4 text-emerald-400"></i>
+              <span id="tutDemoTitle">3단계 자동 완성 시연 (7회 최단 경로)</span>
+            </div>
+            <button id="tutRunDemoBtn" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg flex items-center gap-1 transition-all">
+              <i data-lucide="play" class="w-3 h-3"></i>
+              <span id="tutRunDemoBtnText">시연 시작</span>
+            </button>
+          </div>
+
+          <!-- 미니 데모 보드 -->
+          <div id="demoBoard" class="h-28 bg-slate-900 rounded-xl border border-slate-800 p-2 flex items-end justify-around gap-2 relative">
+            <div class="demo-peg flex-1 h-full flex flex-col justify-end items-center relative" id="demoPeg0">
+              <div class="absolute bottom-3 w-1.5 bg-slate-600 rounded-t-full" style="height: 75%;"></div>
+              <div class="w-full flex-1 flex flex-col justify-end items-center z-10 demo-stack pb-0"></div>
+              <div class="w-full h-3 bg-slate-700 rounded text-[9px] text-center font-bold text-slate-300">A</div>
+            </div>
+            <div class="demo-peg flex-1 h-full flex flex-col justify-end items-center relative" id="demoPeg1">
+              <div class="absolute bottom-3 w-1.5 bg-slate-600 rounded-t-full" style="height: 75%;"></div>
+              <div class="w-full flex-1 flex flex-col justify-end items-center z-10 demo-stack pb-0"></div>
+              <div class="w-full h-3 bg-slate-700 rounded text-[9px] text-center font-bold text-slate-300">B</div>
+            </div>
+            <div class="demo-peg flex-1 h-full flex flex-col justify-end items-center relative" id="demoPeg2">
+              <div class="absolute bottom-3 w-1.5 bg-slate-600 rounded-t-full" style="height: 75%;"></div>
+              <div class="w-full flex-1 flex flex-col justify-end items-center z-10 demo-stack pb-0"></div>
+              <div class="w-full h-3 bg-slate-700 rounded text-[9px] text-center font-bold text-emerald-400">C</div>
+            </div>
+          </div>
+          <div id="demoStepDesc" class="mt-2 text-[11px] text-center text-slate-400 font-mono">
+            시연 시작 버튼을 누르면 7단계 최단 이동 과정을 확인할 수 있습니다.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 모달 푸터 -->
+      <div class="p-3 sm:p-4 border-t border-slate-800 bg-slate-900/90 flex justify-end">
+        <button id="confirmTutorialBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition-all shadow-md">
+          확인했습니다!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 성공 클리어 축하 모달 ================= -->
+  <div id="clearModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden">
+    <div class="bg-slate-900 border border-emerald-500/30 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative overflow-hidden">
+      <div class="absolute -top-12 -right-12 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl"></div>
+      <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center mx-auto mb-3 glow-green">
+        <i data-lucide="trophy" class="w-7 h-7"></i>
+      </div>
+      <h3 class="text-xl font-black text-white" id="modalClearTitle">스테이지 클리어!</h3>
+      <p class="text-xs text-slate-300 mt-1" id="modalClearStudentDesc"></p>
+      <p class="text-xs text-emerald-400 font-semibold mt-1" id="modalClearSub">성공 LED 램프에 불이 들어왔습니다.</p>
+      
+      <div class="my-4 bg-slate-950/60 border border-slate-800 rounded-xl p-3 text-xs space-y-1.5 text-slate-300">
+        <div class="flex justify-between">
+          <span id="modalStatMovesLabel">이동 횟수:</span>
+          <span class="font-bold text-white" id="modalResultMoves">0회</span>
+        </div>
+        <div class="flex justify-between">
+          <span id="modalStatMinMovesLabel">최소 이동:</span>
+          <span class="font-bold text-indigo-400" id="modalResultMinMoves">0회</span>
+        </div>
+        <div class="flex justify-between">
+          <span id="modalStatTimeLabel">남은 시간:</span>
+          <span class="font-bold text-amber-300" id="modalResultTime">00:00</span>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button id="modalReplayBtn" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all">
+          다시 도전
+        </button>
+        <button id="modalNextBtn" class="flex-1 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/30">
+          다음 단계 도전
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 시간 초과 실패 모달 ================= -->
+  <div id="failModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden">
+    <div class="bg-slate-900 border border-rose-500/30 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative overflow-hidden">
+      <div class="w-14 h-14 rounded-2xl bg-rose-500/20 border border-rose-400/40 text-rose-400 flex items-center justify-center mx-auto mb-3">
+        <i data-lucide="alarm-clock-off" class="w-7 h-7"></i>
+      </div>
+      <h3 class="text-xl font-black text-white" id="modalFailTitle">시간 종료!</h3>
+      <p class="text-xs text-rose-400 font-medium mt-1" id="modalFailSub">제한 시간이 초과되었습니다.</p>
+      <div class="mt-5 flex gap-2">
+        <button id="modalFailRetryBtn" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-indigo-600/30">
+          다시 시도하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 알림 메시지 바 -->
+  <div id="toastBox" class="fixed bottom-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 transform translate-y-3">
+    <div class="px-4 py-2 bg-slate-900/95 border border-indigo-500/40 text-indigo-200 rounded-full text-xs font-semibold shadow-2xl backdrop-blur-md flex items-center gap-2">
+      <i data-lucide="info" class="w-4 h-4 text-indigo-400"></i>
+      <span id="toastMsgText">알림 내용</span>
+    </div>
+  </div>
+
+  <script>
+    /* ========================================================
+       1. 다국어 사전 (한국어 기본 + 영어 / 중국어 / 러시아어 병기)
+    ======================================================== */
+    let currentSecondaryLang = 'ko'; // 'ko', 'en', 'zh', 'ru'
+
+    const i18n = {
+      headerTitle: { ko: '하노이의 탑 챌린지', en: 'Tower of Hanoi Challenge', zh: '汉诺塔挑战', ru: 'Челлендж Ханойской башни' },
+      headerSub: { 
+        ko: '최소 이동 횟수로 모든 원판을 목표 기둥(C)으로 옮기세요!', 
+        en: 'Move all disks to Peg C with minimum moves!', 
+        zh: '以最少步数将所有圆盘移至目标柱(C)！', 
+        ru: 'Переместите все диски на столб C за минимум ходов!' 
+      },
+      btnTutorial: { ko: '게임 방법', en: 'How to Play', zh: '游戏玩法', ru: 'Как играть' },
+      btnPause: { ko: '일시정지', en: 'Pause', zh: '暂停', ru: 'Пауза' },
+      btnResume: { ko: '계속하기', en: 'Resume', zh: '继续', ru: 'Продолжить' },
+      btnRestart: { ko: '다시시작', en: 'Restart', zh: '重新开始', ru: 'Заново' },
+      stageLabel: { ko: '단계 선택 (3 ~ 12단)', en: 'Stage Selection (3~12)', zh: '关卡选择 (3~12阶)', ru: 'Выбор уровня (3-12)' },
+      clearedBadge: { ko: '성공', en: 'Cleared', zh: '通关', ru: 'Пройдено' },
+      
+      statStage: { ko: '현재 단계 / 최소 이동', en: 'Stage / Min Moves', zh: '当前关卡 / 最小步数', ru: 'Уровень / Мин. ходов' },
+      statMoves: { ko: '내 이동 횟수', en: 'Your Moves', zh: '移动步数', ru: 'Ваши ходы' },
+      statTimer: { ko: '남은 시간', en: 'Time Remaining', zh: '剩余时间', ru: 'Время' },
+
+      pegA: { ko: 'A 출발', en: 'A Start', zh: 'A 起点', ru: 'A Старт' },
+      pegB: { ko: 'B 경유', en: 'B Via', zh: 'B 中转', ru: 'B Буфер' },
+      pegC: { ko: 'C 목표', en: 'C Goal', zh: 'C 目标', ru: 'C Цель' },
+
+      hintDefault: { 
+        ko: '원판을 클릭하거나 드래그하여 다른 기둥으로 옮기세요. (작은 원판 위에 큰 원판 금지)', 
+        en: 'Click or drag disks to move. (Never place a larger disk on a smaller one)', 
+        zh: '点击或拖拽移动圆盘。(禁止大盘放在小盘上)', 
+        ru: 'Нажимайте или перетаскивайте диски. (Нельзя класть больший диск на меньший)' 
+      },
+      hintPaused: { ko: '게임이 일시정지되었습니다.', en: 'Game is paused.', zh: '游戏已暂停。', ru: 'Игра на паузе.' },
+
+      // 관산중학교 학생 로그인
+      loginTitle: { ko: '관산중학교 하노이의 탑 챌린지', en: 'Gwansan MS Tower of Hanoi', zh: '冠山中学汉诺塔挑战', ru: 'Челлендж средней школы Квансан' },
+      loginDesc: { ko: '학생 확인을 위해 학번과 이름을 입력해주세요.', en: 'Enter your student ID and name.', zh: '请输入学号与姓名以进行验证。', ru: 'Введите номер ученика и имя.' },
+      loginId: { ko: '학번 (예: 10325 또는 1-3-25)', en: 'Student ID (e.g. 10325)', zh: '学号 (例: 10325)', ru: 'Номер ученика (напр. 10325)' },
+      loginName: { ko: '이름', en: 'Name', zh: '姓名', ru: 'Имя' },
+      loginBtn: { ko: '게임 시작하기', en: 'Start Game', zh: '开始游戏', ru: 'Начать игру' },
+
+      footerText: { 
+        ko: '관산중학교 수학 탐구 교실 • 수학적 귀납법과 재귀 알고리즘 챌린지', 
+        en: 'Gwansan Middle School Math Lab • Mathematical Induction & Recursion', 
+        zh: '冠山中学数学探索课堂 • 数学归纳法与递归算法挑战', 
+        ru: 'Школа Квансан - Кабинет математики • Индукция и рекурсия' 
+      },
+
+      // 튜토리얼
+      tutTitle: { ko: '하노이의 탑 규칙 및 플레이 방법', en: 'Rules & How to Play', zh: '汉诺塔规则与玩法', ru: 'Правила и обучение' },
+      tutSub: { ko: '고대 수학 퍼즐의 원리와 필승 공식', en: 'Principles & Optimal Strategy', zh: '数学谜题原理与必胜公式', ru: 'Математические принципы и формула' },
+      tutRulesTitle: { ko: '하노이의 탑 3대 기본 규칙', en: '3 Fundamental Rules', zh: '汉诺塔三大基本规则', ru: '3 основных правила' },
+      tutRule1: { ko: '<strong>규칙 1:</strong> 한 번에 기둥 맨 위의 원판 1개만 옮길 수 있습니다.', en: '<strong>Rule 1:</strong> Only one disk can be moved at a time.', zh: '<strong>规则 1:</strong> 每次只能移动柱子最顶端的一个圆盘。', ru: '<strong>Правило 1:</strong> За один ход перемещается только 1 верхний диск.' },
+      tutRule2: { ko: '<strong>규칙 2:</strong> 절대로 <strong>작은 원판 위에 큰 원판</strong>을 쌓을 수 없습니다.', en: '<strong>Rule 2:</strong> No disk may be placed on top of a smaller disk.', zh: '<strong>规则 2:</strong> 严禁将大圆盘叠放在小圆盘上方。', ru: '<strong>Правило 2:</strong> Нельзя класть больший диск на меньший.' },
+      tutRule3: { ko: '<strong>규칙 3:</strong> 출발 기둥(A)의 모든 원판을 최종 목표 기둥(C)으로 동일한 순서로 옮겨야 합니다.', en: '<strong>Rule 3:</strong> All disks must be transferred from Peg A to Peg C in order.', zh: '<strong>规则 3:</strong> 必须将起点柱(A)的所有圆盘按相同顺序移至目标柱(C)。', ru: '<strong>Правило 3:</strong> Все диски со столба A должны быть перемещены на столб C.' },
+      tutMathTitle: { ko: '최소 이동 횟수 공식과 필승 전략', en: 'Formula & Winning Strategy', zh: '最少步数公式与必胜策略', ru: 'Формула минимума и победная стратегия' },
+      tutMathDesc1: { ko: '원판 개수가 $n$개일 때, 최소 이동 횟수는 <strong>2ⁿ - 1</strong>번입니다.', en: 'For n disks, minimum moves = <strong>2ⁿ - 1</strong>.', zh: '当圆盘数为n时，最少移动步数为 <strong>2ⁿ - 1</strong> 次。', ru: 'Для n дисков минимальное число ходов: <strong>2ⁿ - 1</strong>.' },
+      tutMathDesc2: { ko: '💡 <strong>첫 수 공식:</strong> 총 원판 개수가 <strong>홀수</strong>면 1번 원판을 바로 <strong>C 기둥</strong>으로, <strong>짝수</strong>면 <strong>B 기둥</strong>으로 먼저 옮기면 최소 경로로 완성됩니다!', en: '💡 <strong>Tip:</strong> If total disks is <strong>ODD</strong>, move disk 1 to <strong>Peg C</strong> first. If <strong>EVEN</strong>, move to <strong>Peg B</strong>!', zh: '💡 <strong>技巧:</strong> 总盘数为<strong>奇数</strong>时第1步移至<strong>C柱</strong>；总盘数为<strong>偶数</strong>时第1步移至<strong>B柱</strong>！', ru: '💡 <strong>Совет:</strong> Если число дисков <strong>нечётное</strong>, кладите 1-й диск на <strong>C</strong>; если <strong>чётное</strong> - на <strong>B</strong>!' },
+      tutDemoTitle: { ko: '3단계 자동 완성 시연 (7회 최단 경로)', en: 'Stage 3 Auto Demo (7 moves)', zh: '3阶自动演示 (7步最优解)', ru: 'Демо 3 уровня (7 ходов)' },
+      tutRunDemoBtn: { ko: '시연 시작', en: 'Start Demo', zh: '开始演示', ru: 'Начать демо' },
+      tutConfirmBtn: { ko: '확인했습니다!', en: 'Got it!', zh: '我明白了！', ru: 'Понятно!' },
+
+      // 모달 결과
+      clearTitle: { ko: '스테이지 클리어!', en: 'Stage Cleared!', zh: '关卡通过！', ru: 'Уровень пройден!' },
+      clearSub: { ko: '성공 LED 램프에 불이 들어왔습니다.', en: 'Success LED indicator is now ON.', zh: '成功指示灯已点亮。', ru: 'Индикатор успеха зажжен.' },
+      clearStatMoves: { ko: '내 이동 횟수:', en: 'Your Moves:', zh: '实际步数:', ru: 'Ваши ходы:' },
+      clearStatMin: { ko: '최소 이동:', en: 'Min Moves:', zh: '最小步数:', ru: 'Мин. ходов:' },
+      clearStatTime: { ko: '남은 시간:', en: 'Time Left:', zh: '剩余时间:', ru: 'Осталось времени:' },
+      clearBtnReplay: { ko: '다시 도전', en: 'Retry', zh: '再次挑战', ru: 'Повторить' },
+      clearBtnNext: { ko: '다음 단계 도전', en: 'Next Stage', zh: '下一关', ru: 'Следующий уровень' },
+
+      failTitle: { ko: '시간 종료!', en: 'Time Over!', zh: '时间耗尽！', ru: 'Время вышло!' },
+      failSub: { ko: '제한 시간이 초과되었습니다.', en: 'You ran out of time.', zh: '超过了限制时间。', ru: 'Время истекло.' },
+      failRetry: { ko: '다시 시도하기', en: 'Try Again', zh: '重新尝试', ru: 'Попробовать снова' },
+
+      toastInvalid: { ko: '더 큰 원판을 작은 원판 위에 올릴 수 없습니다!', en: 'Cannot place larger disk on smaller disk!', zh: '不能将大圆盘放在小圆盘上面！', ru: 'Больший диск нельзя класть на меньший!' },
+      toastPicked: { ko: '기둥에서 원판을 선택했습니다. 놓을 기둥을 선택하세요.', en: 'Disk selected. Choose target peg.', zh: '已选中圆盘，请选择目标柱。', ru: 'Диск выбран. Нажмите на целевой столб.' },
+      toastCleared: { ko: '축하합니다! 스테이지 성공!', en: 'Congratulations! Stage Cleared!', zh: '恭喜！通关成功！', ru: 'Поздравляем! Уровень пройден!' }
+    };
+
+    function bText(key, mode = 'inline') {
+      const item = i18n[key];
+      if (!item) return '';
+      const ko = item.ko || '';
+      if (currentSecondaryLang === 'ko') return ko;
+      const sec = item[currentSecondaryLang] || '';
+      if (!sec) return ko;
+      if (mode === 'sub') {
+        return `<span>${ko}</span><span class="block text-[10px] opacity-75 font-normal tracking-tight">${sec}</span>`;
+      }
+      return `${ko} <span class="text-[11px] opacity-80 font-normal">(${sec})</span>`;
+    }
+
+    /* ========================================================
+       2. Web Audio 사운드 효과음
+    ======================================================== */
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq = 440, type = 'sine', duration = 0.1, gainVal = 0.15) {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(gainVal, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playVictoryFanfare() {
+      try {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            playTone(freq, 'triangle', 0.25, 0.2);
+          }, idx * 120);
+        });
+      } catch (e) {}
+    }
+
+    /* ========================================================
+       3. 게임 상태 및 단계별 시간 제한 설정 (3단 ~ 12단)
+    ======================================================== */
+    const MIN_STAGE = 3;
+    const MAX_STAGE = 12;
+    let currentStage = 3;
+    let pegs = [[], [], []];
+    let selectedPegIndex = null;
+    let moveCount = 0;
+    let isPaused = false;
+    let isGameOver = false;
+
+    // 단계별 시간제한 (초) : 3단(50초) ~ 12단(400분)
+    const STAGE_TIME_LIMITS = {
+      3: 50,
+      4: 90,
+      5: 180,
+      6: 360,
+      7: 750,
+      8: 1500,
+      9: 3000,
+      10: 6000,
+      11: 12000,
+      12: 24000
+    };
+
+    let totalTimeLimit = 50;
+    let timeRemaining = 50;
+    let timerInterval = null;
+
+    const STORAGE_KEY = 'hanoi_cleared_stages_responsive_v1';
+    const STUDENT_STORAGE_KEY = 'hanoi_gwansan_student_v1';
+    let currentStudent = null;
+    let clearedStages = new Set();
+
+    // 원판 그라데이션 컬러 팔레트 (최대 12개)
+    const DISK_COLORS = [
+      'from-rose-500 to-pink-600',
+      'from-amber-400 to-orange-500',
+      'from-yellow-400 to-amber-500',
+      'from-emerald-400 to-green-600',
+      'from-teal-400 to-cyan-600',
+      'from-sky-400 to-blue-600',
+      'from-indigo-500 to-violet-600',
+      'from-purple-500 to-fuchsia-600',
+      'from-pink-500 to-rose-600',
+      'from-red-600 to-orange-700',
+      'from-cyan-500 to-teal-700',
+      'from-violet-600 to-purple-800'
+    ];
+
+    /* ========================================================
+       4. 학생 정보 및 클리어 램프 저장소 관리
+    ======================================================== */
+    function loadStudentInfo() {
+      try {
+        const saved = localStorage.getItem(STUDENT_STORAGE_KEY);
+        if (saved) {
+          currentStudent = JSON.parse(saved);
+        }
+      } catch (e) {
+        currentStudent = null;
+      }
+    }
+
+    function saveStudentInfo(id, name) {
+      currentStudent = { id, name };
+      try {
+        localStorage.setItem(STUDENT_STORAGE_KEY, JSON.stringify(currentStudent));
+      } catch (e) {}
+    }
+
+    function clearStudentInfo() {
+      currentStudent = null;
+      try {
+        localStorage.removeItem(STUDENT_STORAGE_KEY);
+      } catch (e) {}
+    }
+
+    function checkStudentLogin() {
+      const loginScreen = document.getElementById('loginScreen');
+      const studentBadge = document.getElementById('studentBadge');
+      const displayStudentInfo = document.getElementById('displayStudentInfo');
+
+      if (currentStudent && currentStudent.id && currentStudent.name) {
+        loginScreen.classList.add('hidden');
+        studentBadge.classList.remove('hidden');
+        studentBadge.classList.add('flex');
+        displayStudentInfo.innerText = `${currentStudent.id} ${currentStudent.name}`;
+      } else {
+        loginScreen.classList.remove('hidden');
+        studentBadge.classList.add('hidden');
+        studentBadge.classList.remove('flex');
+      }
+      lucide.createIcons();
+    }
+
+    function loadClearedStages() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const arr = JSON.parse(raw);
+          clearedStages = new Set(arr);
+        }
+      } catch (e) {
+        clearedStages = new Set();
+      }
+    }
+
+    function markStageAsCleared(stage) {
+      clearedStages.add(stage);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(clearedStages)));
+      } catch (e) {}
+      renderStageButtons();
+    }
+
+    function resetAllRecords() {
+      if (confirm('모든 단계의 성공 LED 램프 기록을 초기화하시겠습니까?')) {
+        clearedStages.clear();
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch (e) {}
+        renderStageButtons();
+        showToast('성공 기록이 초기화되었습니다.');
+      }
+    }
+
+    /* ========================================================
+       5. 3~12단 버튼 그리드 및 LED 램프 렌더링
+    ======================================================== */
+    function renderStageButtons() {
+      const container = document.getElementById('stageButtonsContainer');
+      container.innerHTML = '';
+
+      for (let s = MIN_STAGE; s <= MAX_STAGE; s++) {
+        const isSelected = (s === currentStage);
+        const isCleared = clearedStages.has(s);
+
+        const btnWrapper = document.createElement('div');
+        btnWrapper.className = 'flex flex-col items-center gap-1';
+
+        const btn = document.createElement('button');
+        btn.dataset.stage = s;
+        btn.className = `w-full py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-black transition-all flex flex-col items-center justify-center relative ${
+          isSelected 
+            ? 'bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/40 ring-2 ring-indigo-400 scale-[1.02]' 
+            : 'bg-slate-800/90 hover:bg-slate-700/80 text-slate-300 border border-slate-700/70 hover:border-slate-600'
+        }`;
+        
+        btn.innerHTML = `
+          <span>${s}단</span>
+          <span class="text-[9px] font-normal opacity-70">${s}D</span>
+        `;
+
+        btn.addEventListener('click', () => {
+          if (currentStage !== s) {
+            currentStage = s;
+            initGame();
+          }
+        });
+
+        // 버튼 가로 길이와 일치하는 바(Bar) 형태의 램프 인디케이터
+        const led = document.createElement('div');
+        led.className = 'w-full flex items-center justify-center mt-1 px-0.5';
+        if (isCleared) {
+          led.innerHTML = `
+            <div class="w-full h-2 rounded-full bg-gradient-to-r from-emerald-500 via-teal-300 to-emerald-500 lamp-bar-on border border-emerald-300/80 transition-all flex items-center justify-center">
+              <span class="sr-only">ON</span>
+            </div>
+          `;
+        } else {
+          led.innerHTML = `
+            <div class="w-full h-1.5 rounded-full bg-slate-800/90 border border-slate-700/80 transition-all">
+              <span class="sr-only">OFF</span>
+            </div>
+          `;
+        }
+
+        btnWrapper.appendChild(btn);
+        btnWrapper.appendChild(led);
+        container.appendChild(btnWrapper);
+      }
+
+      const clearedCountText = document.getElementById('clearedCountText');
+      if (clearedCountText) {
+        const clearedWord = i18n.clearedBadge[currentSecondaryLang] || '성공';
+        clearedCountText.innerHTML = `
+          <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block led-active"></span>
+          <span>${clearedWord}: ${clearedStages.size} / 10</span>
+        `;
+      }
+    }
+
+    /* ========================================================
+       6. 게임 초기화 및 타이머 관리
+    ======================================================== */
+    function initGame() {
+      clearInterval(timerInterval);
+
+      // 기둥 초기화
+      pegs = [[], [], []];
+      for (let i = currentStage; i >= 1; i--) {
+        pegs[0].push(i);
+      }
+
+      selectedPegIndex = null;
+      moveCount = 0;
+      isPaused = false;
+      isGameOver = false;
+
+      totalTimeLimit = STAGE_TIME_LIMITS[currentStage] || 60;
+      timeRemaining = totalTimeLimit;
+
+      document.getElementById('pauseOverlay').classList.add('hidden');
+      document.getElementById('clearModal').classList.add('hidden');
+      document.getElementById('failModal').classList.add('hidden');
+
+      updateUI();
+      renderDisks();
+      renderStageButtons();
+      startTimer();
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!isPaused && !isGameOver) {
+          timeRemaining--;
+          updateTimerDisplay();
+
+          if (timeRemaining <= 0) {
+            handleTimeOver();
+          }
+        }
+      }, 1000);
+    }
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateTimerDisplay() {
+      const timeRemainingText = document.getElementById('timeRemainingText');
+      const timeProgressBar = document.getElementById('timeProgressBar');
+
+      timeRemainingText.innerText = formatTime(timeRemaining);
+
+      const ratio = Math.max(0, Math.min(1, timeRemaining / totalTimeLimit));
+      timeProgressBar.style.width = `${ratio * 100}%`;
+
+      if (ratio < 0.2) {
+        timeRemainingText.classList.remove('text-amber-300');
+        timeRemainingText.classList.add('text-rose-400', 'animate-pulse');
+      } else {
+        timeRemainingText.classList.add('text-amber-300');
+        timeRemainingText.classList.remove('text-rose-400', 'animate-pulse');
+      }
+    }
+
+    function handleTimeOver() {
+      isGameOver = true;
+      clearInterval(timerInterval);
+      playTone(180, 'sawtooth', 0.5, 0.3);
+      document.getElementById('failModal').classList.remove('hidden');
+    }
+
+    /* ========================================================
+       7. UI 및 원판 동적 반응형 렌더링
+    ======================================================== */
+    function updateUI() {
+      document.getElementById('currentStageText').innerText = `${currentStage}단`;
+      const minMoves = Math.pow(2, currentStage) - 1;
+      document.getElementById('minMovesText').innerText = minMoves.toLocaleString();
+      document.getElementById('moveCountText').innerText = moveCount.toLocaleString();
+      updateTimerDisplay();
+    }
+
+    function calculateDiskDimensions() {
+      const containerHeight = document.getElementById('gameBoardContainer').clientHeight || 280;
+      const availableStackHeight = containerHeight - 65;
+      const computedHeight = Math.floor(availableStackHeight / currentStage) - 3;
+      const finalHeight = Math.max(13, Math.min(28, computedHeight));
+      const fontSize = finalHeight > 20 ? 11 : finalHeight > 15 ? 10 : 9;
+      return { height: finalHeight, fontSize };
+    }
+
+    function renderDisks() {
+      const { height, fontSize } = calculateDiskDimensions();
+
+      for (let p = 0; p < 3; p++) {
+        const stackEl = document.getElementById(`diskStack-${p}`);
+        stackEl.innerHTML = '';
+
+        // 배열의 마지막 원판(맨 위)부터 거꾸로 순회하여 DOM에 추가해야
+        // flex-col justify-end 환경에서 가장 큰 바닥 원판이 가장 아래에 안착됩니다.
+        for (let idx = pegs[p].length - 1; idx >= 0; idx--) {
+          const diskSize = pegs[p][idx];
+          const isTop = (idx === pegs[p].length - 1);
+          const isSelected = (selectedPegIndex === p && isTop);
+
+          const minWidthPct = 25;
+          const maxWidthPct = 96;
+          const widthPct = minWidthPct + ((diskSize - 1) / Math.max(1, currentStage - 1)) * (maxWidthPct - minWidthPct);
+
+          const diskEl = document.createElement('div');
+          diskEl.className = `w-full rounded-lg sm:rounded-xl bg-gradient-to-r shadow-md flex items-center justify-center font-black transition-all cursor-pointer pointer-events-auto my-0.5 border border-white/20 ${
+            DISK_COLORS[(diskSize - 1) % DISK_COLORS.length]
+          } ${
+            isSelected 
+              ? '-translate-y-3.5 ring-2 ring-white shadow-xl glow-indigo scale-105' 
+              : 'hover:brightness-110 active:scale-95'
+          }`;
+
+          diskEl.style.width = `${widthPct}%`;
+          diskEl.style.height = `${height}px`;
+          diskEl.style.fontSize = `${fontSize}px`;
+          diskEl.style.lineHeight = `${height}px`;
+
+          diskEl.setAttribute('draggable', isTop ? 'true' : 'false');
+          diskEl.dataset.peg = p;
+          diskEl.dataset.size = diskSize;
+
+          diskEl.innerHTML = `<span class="drop-shadow text-white/95">${diskSize}</span>`;
+
+          diskEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            onPegClick(p);
+          });
+
+          stackEl.appendChild(diskEl);
+        }
+      }
+    }
+
+    /* ========================================================
+       8. 기둥 조작 및 이동 규칙 검증
+    ======================================================== */
+    function onPegClick(pegIndex) {
+      if (isGameOver || isPaused) return;
+
+      if (selectedPegIndex === null) {
+        if (pegs[pegIndex].length === 0) return;
+        selectedPegIndex = pegIndex;
+        playTone(480, 'sine', 0.08, 0.15);
+        showToast(i18n.toastPicked[currentSecondaryLang] || '원판을 선택했습니다.');
+        renderDisks();
+      } else {
+        if (selectedPegIndex === pegIndex) {
+          selectedPegIndex = null;
+          playTone(320, 'sine', 0.06, 0.1);
+          renderDisks();
+          return;
+        }
+
+        const sourcePeg = selectedPegIndex;
+        const targetPeg = pegIndex;
+        const movingDisk = pegs[sourcePeg][pegs[sourcePeg].length - 1];
+        const targetTopDisk = pegs[targetPeg][pegs[targetPeg].length - 1];
+
+        if (targetTopDisk !== undefined && targetTopDisk < movingDisk) {
+          playTone(220, 'sawtooth', 0.2, 0.25);
+          showToast(i18n.toastInvalid[currentSecondaryLang] || '더 큰 원판을 작은 원판 위에 올릴 수 없습니다!');
+          selectedPegIndex = null;
+          renderDisks();
+          return;
+        }
+
+        // 유효한 이동 수행
+        pegs[sourcePeg].pop();
+        pegs[targetPeg].push(movingDisk);
+        moveCount++;
+        selectedPegIndex = null;
+
+        playTone(600, 'triangle', 0.09, 0.15);
+        updateUI();
+        renderDisks();
+
+        checkVictory();
+      }
+    }
+
+    function checkVictory() {
+      if (pegs[2].length === currentStage) {
+        isGameOver = true;
+        clearInterval(timerInterval);
+
+        markStageAsCleared(currentStage);
+        playVictoryFanfare();
+
+        try {
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        } catch (e) {}
+
+        const modal = document.getElementById('clearModal');
+        document.getElementById('modalResultMoves').innerText = `${moveCount}회`;
+        document.getElementById('modalResultMinMoves').innerText = `${Math.pow(2, currentStage) - 1}회`;
+        document.getElementById('modalResultTime').innerText = formatTime(timeRemaining);
+
+        const studentDesc = document.getElementById('modalClearStudentDesc');
+        if (currentStudent) {
+          studentDesc.innerText = `관산중 ${currentStudent.id} ${currentStudent.name} 학생 달성!`;
+        }
+
+        modal.classList.remove('hidden');
+      }
+    }
+
+    /* ========================================================
+       9. 드래그 앤 드롭 및 터치 인터랙션 지원
+    ======================================================== */
+    function initDragAndDrop() {
+      const pegContainers = document.querySelectorAll('.peg-container');
+
+      pegContainers.forEach(pegEl => {
+        pegEl.addEventListener('click', () => {
+          const pIdx = parseInt(pegEl.dataset.pegIndex, 10);
+          onPegClick(pIdx);
+        });
+
+        pegEl.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          pegEl.classList.add('peg-drop-target');
+        });
+
+        pegEl.addEventListener('dragleave', () => {
+          pegEl.classList.remove('peg-drop-target');
+        });
+
+        pegEl.addEventListener('drop', (e) => {
+          e.preventDefault();
+          pegEl.classList.remove('peg-drop-target');
+          const fromPeg = parseInt(e.dataTransfer.getData('text/plain'), 10);
+          const toPeg = parseInt(pegEl.dataset.pegIndex, 10);
+
+          if (!isNaN(fromPeg) && fromPeg !== toPeg) {
+            selectedPegIndex = fromPeg;
+            onPegClick(toPeg);
+          }
+        });
+      });
+
+      document.addEventListener('dragstart', (e) => {
+        if (e.target && e.target.getAttribute('draggable') === 'true') {
+          const peg = e.target.dataset.peg;
+          e.dataTransfer.setData('text/plain', peg);
+          playTone(500, 'sine', 0.05, 0.1);
+        }
+      });
+    }
+
+    /* ========================================================
+       10. 튜토리얼 팝업 및 3단계 자동 시연 (Auto Demo)
+    ======================================================== */
+    let demoInterval = null;
+    let demoStep = 0;
+    let demoPegs = [[3, 2, 1], [], []];
+    const demoMoves = [
+      { from: 0, to: 2, disk: 1 },
+      { from: 0, to: 1, disk: 2 },
+      { from: 2, to: 1, disk: 1 },
+      { from: 0, to: 2, disk: 3 },
+      { from: 1, to: 0, disk: 1 },
+      { from: 1, to: 2, disk: 2 },
+      { from: 0, to: 2, disk: 1 }
+    ];
+
+    function openTutorial() {
+      const modal = document.getElementById('tutorialModal');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+      }, 10);
+      resetDemoBoard();
+    }
+
+    function closeTutorial() {
+      const modal = document.getElementById('tutorialModal');
+      modal.classList.add('opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 200);
+      clearInterval(demoInterval);
+      demoInterval = null;
+    }
+
+    function resetDemoBoard() {
+      clearInterval(demoInterval);
+      demoInterval = null;
+      demoStep = 0;
+      demoPegs = [[3, 2, 1], [], []];
+      renderDemoBoard();
+      document.getElementById('demoStepDesc').innerText = '시연 시작 버튼을 누르면 7단계 최단 이동 과정을 확인할 수 있습니다.';
+      const runBtn = document.getElementById('tutRunDemoBtnText');
+      if (runBtn) runBtn.innerText = i18n.tutRunDemoBtn[currentSecondaryLang] || '시연 시작';
+    }
+
+    function renderDemoBoard() {
+      for (let p = 0; p < 3; p++) {
+        const stackEl = document.querySelector(`#demoPeg${p} .demo-stack`);
+        stackEl.innerHTML = '';
+        for (let i = demoPegs[p].length - 1; i >= 0; i--) {
+          const diskSize = demoPegs[p][i];
+          const diskEl = document.createElement('div');
+          const widthPct = 30 + diskSize * 22;
+          diskEl.className = `rounded bg-gradient-to-r shadow flex items-center justify-center font-bold text-[9px] text-white my-0.5 ${
+            DISK_COLORS[diskSize - 1]
+          }`;
+          diskEl.style.width = `${widthPct}%`;
+          diskEl.style.height = '14px';
+          diskEl.innerText = diskSize;
+          stackEl.appendChild(diskEl);
+        }
+      }
+    }
+
+    function runDemoStep() {
+      if (demoStep >= demoMoves.length) {
+        clearInterval(demoInterval);
+        demoInterval = null;
+        document.getElementById('demoStepDesc').innerText = '🎉 7회 만에 완성되었습니다! 홀수 개는 첫 수를 C 기둥으로 보냅니다.';
+        playVictoryFanfare();
+        return;
+      }
+
+      const move = demoMoves[demoStep];
+      demoPegs[move.from].pop();
+      demoPegs[move.to].push(move.disk);
+      demoStep++;
+
+      const pegNames = ['A', 'B', 'C'];
+      document.getElementById('demoStepDesc').innerText = `[${demoStep}단계 / 7] 원판 ${move.disk}을(를) ${pegNames[move.from]} ➔ ${pegNames[move.to]} 기둥으로 이동`;
+      playTone(550 + demoStep * 40, 'triangle', 0.08, 0.12);
+      renderDemoBoard();
+    }
+
+    function toggleAutoDemo() {
+      if (demoInterval) {
+        clearInterval(demoInterval);
+        demoInterval = null;
+        document.getElementById('tutRunDemoBtnText').innerText = i18n.tutRunDemoBtn[currentSecondaryLang] || '시연 재개';
+      } else {
+        if (demoStep >= demoMoves.length) {
+          resetDemoBoard();
+        }
+        document.getElementById('tutRunDemoBtnText').innerText = '일시정지';
+        runDemoStep();
+        demoInterval = setInterval(runDemoStep, 900);
+      }
+    }
+
+    /* ========================================================
+       11. 다국어 업데이트 적용 함수
+    ======================================================== */
+    function applyLanguage() {
+      document.getElementById('headerTitle').innerHTML = bText('headerTitle', 'inline');
+      document.getElementById('headerSub').innerHTML = bText('headerSub', 'inline');
+
+      document.getElementById('btnTutorialText').innerText = i18n.btnTutorial[currentSecondaryLang] || '게임 방법';
+      document.getElementById('pauseBtnText').innerText = isPaused ? (i18n.btnResume[currentSecondaryLang] || '계속하기') : (i18n.btnPause[currentSecondaryLang] || '일시정지');
+      document.getElementById('restartBtnText').innerText = i18n.btnRestart[currentSecondaryLang] || '다시시작';
+      document.getElementById('resumeBtnText').innerText = i18n.btnResume[currentSecondaryLang] || '계속하기';
+
+      document.getElementById('stageSelectLabel').innerHTML = bText('stageLabel', 'inline');
+      document.getElementById('statStageLabel').innerHTML = bText('statStage', 'inline');
+      document.getElementById('statMovesLabel').innerHTML = bText('statMoves', 'inline');
+      document.getElementById('statTimerLabel').innerHTML = bText('statTimer', 'inline');
+
+      document.getElementById('pegLabel0').innerHTML = bText('pegA', 'inline');
+      document.getElementById('pegLabel1').innerHTML = bText('pegB', 'inline');
+      document.getElementById('pegLabel2').innerHTML = bText('pegC', 'inline');
+
+      document.getElementById('gameHintMsg').innerHTML = isPaused ? bText('hintPaused', 'inline') : bText('hintDefault', 'inline');
+      document.getElementById('footerText').innerHTML = bText('footerText', 'inline');
+
+      // 로그인 화면
+      const loginTitleEl = document.getElementById('loginTitle');
+      if (loginTitleEl) loginTitleEl.innerHTML = bText('loginTitle', 'inline');
+      const loginDescEl = document.getElementById('loginDesc');
+      if (loginDescEl) loginDescEl.innerHTML = bText('loginDesc', 'inline');
+      const loginLabelIdEl = document.getElementById('loginLabelId');
+      if (loginLabelIdEl) loginLabelIdEl.innerHTML = bText('loginId', 'inline');
+      const loginLabelNameEl = document.getElementById('loginLabelName');
+      if (loginLabelNameEl) loginLabelNameEl.innerHTML = bText('loginName', 'inline');
+      const loginBtnLabelEl = document.getElementById('loginBtnLabel');
+      if (loginBtnLabelEl) loginBtnLabelEl.innerHTML = bText('loginBtn', 'inline');
+
+      // 튜토리얼 모달
+      document.getElementById('tutModalTitle').innerHTML = bText('tutTitle', 'inline');
+      document.getElementById('tutModalSub').innerHTML = bText('tutSub', 'inline');
+      document.getElementById('tutRulesTitle').innerHTML = bText('tutRulesTitle', 'inline');
+      document.getElementById('tutRule1').innerHTML = bText('tutRule1', 'inline');
+      document.getElementById('tutRule2').innerHTML = bText('tutRule2', 'inline');
+      document.getElementById('tutRule3').innerHTML = bText('tutRule3', 'inline');
+      document.getElementById('tutMathTitle').innerHTML = bText('tutMathTitle', 'inline');
+      document.getElementById('tutMathDesc1').innerHTML = bText('tutMathDesc1', 'inline');
+      document.getElementById('tutMathDesc2').innerHTML = bText('tutMathDesc2', 'inline');
+      document.getElementById('tutDemoTitle').innerHTML = bText('tutDemoTitle', 'inline');
+      document.getElementById('confirmTutorialBtn').innerText = i18n.tutConfirmBtn[currentSecondaryLang] || '확인했습니다!';
+
+      // 클리어/실패 모달
+      document.getElementById('modalClearTitle').innerHTML = bText('clearTitle', 'inline');
+      document.getElementById('modalClearSub').innerHTML = bText('clearSub', 'inline');
+      document.getElementById('modalStatMovesLabel').innerText = i18n.clearStatMoves[currentSecondaryLang] || '이동 횟수:';
+      document.getElementById('modalStatMinMovesLabel').innerText = i18n.clearStatMin[currentSecondaryLang] || '최소 이동:';
+      document.getElementById('modalStatTimeLabel').innerText = i18n.clearStatTime[currentSecondaryLang] || '남은 시간:';
+      document.getElementById('modalReplayBtn').innerText = i18n.clearBtnReplay[currentSecondaryLang] || '다시 도전';
+      document.getElementById('modalNextBtn').innerText = i18n.clearBtnNext[currentSecondaryLang] || '다음 단계 도전';
+
+      document.getElementById('modalFailTitle').innerHTML = bText('failTitle', 'inline');
+      document.getElementById('modalFailSub').innerHTML = bText('failSub', 'inline');
+      document.getElementById('modalFailRetryBtn').innerText = i18n.failRetry[currentSecondaryLang] || '다시 시도하기';
+
+      renderStageButtons();
+    }
+
+    function setLanguage(lang) {
+      currentSecondaryLang = lang;
+      try {
+        localStorage.setItem('hanoi_lang_pref', lang);
+      } catch (e) {}
+
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        if (b.dataset.lang === lang) {
+          b.className = 'lang-btn px-2.5 py-1 text-xs font-bold rounded-lg transition-all bg-indigo-600 text-white shadow-sm';
+        } else {
+          b.className = 'lang-btn px-2.5 py-1 text-xs font-semibold rounded-lg text-slate-400 hover:text-white transition-all';
+        }
+      });
+
+      applyLanguage();
+    }
+
+    function loadSavedLang() {
+      try {
+        const saved = localStorage.getItem('hanoi_lang_pref');
+        if (saved && ['ko', 'en', 'zh', 'ru'].includes(saved)) {
+          setLanguage(saved);
+          return;
+        }
+      } catch (e) {}
+      setLanguage('ko');
+    }
+
+    /* ========================================================
+       12. 토스트 피드백 알림
+    ======================================================== */
+    let toastTimeout = null;
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      const text = document.getElementById('toastMsgText');
+      text.innerText = msg;
+      box.classList.remove('opacity-0', 'translate-y-3');
+      box.classList.add('opacity-100', 'translate-y-0');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        box.classList.add('opacity-0', 'translate-y-3');
+        box.classList.remove('opacity-100', 'translate-y-0');
+      }, 2200);
+    }
+
+    /* ========================================================
+       13. 페이지 로드 및 이벤트 리스너 등록
+    ======================================================== */
+    window.onload = function() {
+      loadStudentInfo();
+      loadClearedStages();
+      loadSavedLang();
+      initDragAndDrop();
+
+      // 로그인 폼 처리
+      const loginForm = document.getElementById('studentLoginForm');
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const idVal = document.getElementById('studentIdInput').value.trim();
+        const nameVal = document.getElementById('studentNameInput').value.trim();
+        const errEl = document.getElementById('loginErrorText');
+
+        if (!idVal || !nameVal) {
+          errEl.innerText = '학번과 이름을 모두 입력해주세요.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        saveStudentInfo(idVal, nameVal);
+        checkStudentLogin();
+        playTone(600, 'sine', 0.12, 0.15);
+      });
+
+      // 로그아웃 (학생 변경) 버튼
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        clearStudentInfo();
+        document.getElementById('studentIdInput').value = '';
+        document.getElementById('studentNameInput').value = '';
+        checkStudentLogin();
+      });
+
+      checkStudentLogin();
+
+      // 다국어 선택 바 클릭 이벤트 등록
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setLanguage(btn.dataset.lang);
+        });
+      });
+
+      // 상단 컨트롤 버튼들
+      document.getElementById('pauseBtn').addEventListener('click', () => {
+        isPaused = !isPaused;
+        const overlay = document.getElementById('pauseOverlay');
+        const pauseIcon = document.getElementById('pauseIcon');
+        if (isPaused) {
+          overlay.classList.remove('hidden');
+          pauseIcon.setAttribute('data-lucide', 'play');
+          document.getElementById('pauseBtnText').innerText = i18n.btnResume[currentSecondaryLang] || '계속하기';
+        } else {
+          overlay.classList.add('hidden');
+          pauseIcon.setAttribute('data-lucide', 'pause');
+          document.getElementById('pauseBtnText').innerText = i18n.btnPause[currentSecondaryLang] || '일시정지';
+        }
+        applyLanguage();
+        lucide.createIcons();
+      });
+
+      document.getElementById('resumeBtn').addEventListener('click', () => {
+        isPaused = false;
+        document.getElementById('pauseOverlay').classList.add('hidden');
+        document.getElementById('pauseIcon').setAttribute('data-lucide', 'pause');
+        document.getElementById('pauseBtnText').innerText = i18n.btnPause[currentSecondaryLang] || '일시정지';
+        applyLanguage();
+        lucide.createIcons();
+      });
+
+      document.getElementById('restartBtn').addEventListener('click', () => {
+        initGame();
+      });
+
+      document.getElementById('resetRecordsBtn').addEventListener('click', () => {
+        resetAllRecords();
+      });
+
+      // 튜토리얼 모달 트리거 (버튼 클릭 시에만 오픈)
+      document.getElementById('tutorialBtn').addEventListener('click', openTutorial);
+      document.getElementById('floatingTutBtn').addEventListener('click', openTutorial);
+      document.getElementById('closeTutorialBtn').addEventListener('click', closeTutorial);
+      document.getElementById('confirmTutorialBtn').addEventListener('click', closeTutorial);
+      document.getElementById('tutRunDemoBtn').addEventListener('click', toggleAutoDemo);
+
+      // 클리어 모달 버튼
+      document.getElementById('modalReplayBtn').addEventListener('click', () => {
+        initGame();
+      });
+
+      document.getElementById('modalNextBtn').addEventListener('click', () => {
+        if (currentStage < MAX_STAGE) {
+          currentStage++;
+        }
+        initGame();
+      });
+
+      // 실패 모달 버튼
+      document.getElementById('modalFailRetryBtn').addEventListener('click', () => {
+        initGame();
+      });
+
+      // 윈도우 리사이즈 시 원판 크기 동적 재계산
+      window.addEventListener('resize', () => {
+        renderDisks();
+      });
+
+      // 아이콘 및 첫 게임 시작
+      lucide.createIcons();
+      initGame();
+    };
+  </script>
+</body>
+</html>
