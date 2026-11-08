@@ -28,7 +28,6 @@
       touch-action: manipulation;
     }
 
-    /* 네온 글로우 및 그림자 */
     .glow-indigo {
       box-shadow: 0 0 20px -3px rgba(99, 102, 241, 0.5);
     }
@@ -36,7 +35,6 @@
       box-shadow: 0 0 16px 2px rgba(34, 197, 94, 0.7);
     }
     
-    /* 펄스 애니메이션 */
     @keyframes ledPulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.75; transform: scale(1.15); }
@@ -45,7 +43,6 @@
       animation: ledPulse 1.8s infinite ease-in-out;
     }
     
-    /* 가로 바 형태 램프 네온 글로우 */
     .lamp-bar-on {
       box-shadow: 0 0 12px 2px rgba(52, 211, 153, 0.8), 0 0 4px rgba(255, 255, 255, 0.6);
       animation: barPulse 1.8s infinite ease-in-out;
@@ -55,13 +52,11 @@
       50% { opacity: 0.8; filter: brightness(0.9); }
     }
 
-    /* 드래그 및 호버 시각 피드백 */
     .peg-drop-target {
       background-color: rgba(99, 102, 241, 0.15) !important;
       border-color: rgba(129, 140, 248, 0.8) !important;
     }
 
-    /* 부드러운 스크롤바 */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -95,7 +90,7 @@
       <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-xl shadow-indigo-500/30 mb-3 border border-indigo-400/30">
         <i data-lucide="graduation-cap" class="w-8 h-8 text-white"></i>
       </div>
-      <div class="inline-block px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-2">
+      <div class="inline-block px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-2" id="loginBadge">
         관산중학교 수학 탐구 활동
       </div>
       <h2 class="text-xl sm:text-2xl font-black text-white mb-1" id="loginTitle">하노이의 탑 챌린지</h2>
@@ -143,13 +138,13 @@
         </button>
       </form>
 
-      <div class="mt-4 text-[11px] text-slate-500">
+      <div class="mt-4 text-[11px] text-slate-500" id="loginFootnote">
         관산중학교 학생들의 창의적 문제해결력 신장을 위한 웹 프로그램
       </div>
     </div>
   </div>
 
-  <!-- 상단 컨트롤 및 스테이지 선택 바 (PC 패널 너비만큼 우측 마진 확보) -->
+  <!-- 상단 컨트롤 및 스테이지 선택 바 -->
   <header class="relative z-10 w-full max-w-5xl mx-auto px-3 sm:px-4 pt-2.5 sm:pt-4 flex-shrink-0 lg:mr-[340px] xl:mr-[380px] transition-all">
     <!-- 다국어 선택 바 및 로그인 학생 정보 배지 -->
     <div class="flex items-center justify-between mb-2 px-1 gap-2 flex-wrap sm:flex-nowrap">
@@ -164,7 +159,7 @@
         </div>
         <div class="text-[10px] sm:text-xs font-semibold text-slate-400 flex items-center gap-1.5 hidden md:flex">
           <i data-lucide="globe" class="w-3.5 h-3.5 text-indigo-400"></i>
-          <span>언어 병기 선택 / Secondary Language</span>
+          <span id="langBarTitle">언어 선택 / Language</span>
         </div>
       </div>
       <div class="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800 backdrop-blur-md" id="langSelector">
@@ -228,13 +223,11 @@
       </div>
 
       <!-- 10열 그리드 -->
-      <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5 sm:gap-2" id="stageButtonsContainer">
-        <!-- JS로 동적 생성됨 -->
-      </div>
+      <div class="grid grid-cols-5 sm:grid-cols-10 gap-1.5 sm:gap-2" id="stageButtonsContainer"></div>
     </div>
   </header>
 
-  <!-- 대시보드 상태 패널 (PC 패널 너비만큼 우측 마진 확보) -->
+  <!-- 대시보드 상태 패널 -->
   <section class="relative z-10 w-full max-w-5xl mx-auto px-3 sm:px-4 py-2 flex-shrink-0 lg:mr-[340px] xl:mr-[380px] transition-all">
     <div class="grid grid-cols-3 gap-2 bg-slate-900/80 border border-slate-800/90 rounded-2xl p-2.5 sm:p-3 backdrop-blur-md shadow-lg text-center items-center">
       <!-- 1. 현재 스테이지 & 최소 이동 수 -->
@@ -242,7 +235,7 @@
         <span class="text-[10px] sm:text-xs text-slate-400 font-medium" id="statStageLabel">현재 단계 / 최소 이동</span>
         <div class="text-sm sm:text-base font-black text-indigo-400 mt-0.5">
           <span id="currentStageText">3단</span> 
-          <span class="text-xs text-slate-400 font-normal">/ <span id="minMovesText">7</span>회</span>
+          <span class="text-xs text-slate-400 font-normal">/ <span id="minMovesText">7</span><span id="statMovesUnit">회</span></span>
         </div>
       </div>
 
@@ -270,7 +263,7 @@
     </div>
   </section>
 
-  <!-- 게임 메인 보드 (하노이 탑 기둥 및 원판 영역) -->
+  <!-- 게임 메인 보드 -->
   <main class="relative z-10 w-full max-w-5xl mx-auto px-3 sm:px-4 flex-1 flex flex-col justify-center my-auto min-h-[260px] sm:min-h-[320px] lg:mr-[340px] xl:mr-[380px] transition-all">
     <div class="relative w-full h-[260px] sm:h-[340px] md:h-[380px] bg-slate-900/60 border border-slate-800 rounded-3xl p-3 sm:p-5 backdrop-blur-md flex items-end justify-around gap-2 sm:gap-4 shadow-2xl overflow-hidden" id="gameBoardContainer">
 
@@ -287,7 +280,7 @@
         </button>
       </div>
 
-      <!-- 기둥 0 (A : 출발) -->
+      <!-- 기둥 0 (A) -->
       <div class="peg-container flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group transition-all" data-peg-index="0">
         <div class="absolute bottom-6 w-3 sm:w-4 bg-gradient-to-t from-slate-700 to-slate-600 rounded-t-full shadow-inner border-t border-slate-500 pointer-events-none" style="height: 82%;"></div>
         <div id="diskStack-0" class="w-full flex-1 flex flex-col justify-end items-center z-10 pointer-events-none pb-0"></div>
@@ -298,7 +291,7 @@
         </div>
       </div>
 
-      <!-- 기둥 1 (B : 경유) -->
+      <!-- 기둥 1 (B) -->
       <div class="peg-container flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group transition-all" data-peg-index="1">
         <div class="absolute bottom-6 w-3 sm:w-4 bg-gradient-to-t from-slate-700 to-slate-600 rounded-t-full shadow-inner border-t border-slate-500 pointer-events-none" style="height: 82%;"></div>
         <div id="diskStack-1" class="w-full flex-1 flex flex-col justify-end items-center z-10 pointer-events-none pb-0"></div>
@@ -309,7 +302,7 @@
         </div>
       </div>
 
-      <!-- 기둥 2 (C : 목표) -->
+      <!-- 기둥 2 (C) -->
       <div class="peg-container flex-1 h-full flex flex-col items-center justify-end relative cursor-pointer group transition-all" data-peg-index="2">
         <div class="absolute bottom-6 w-3 sm:w-4 bg-gradient-to-t from-slate-700 to-slate-600 rounded-t-full shadow-inner border-t border-slate-500 pointer-events-none" style="height: 82%;"></div>
         <div id="diskStack-2" class="w-full flex-1 flex flex-col justify-end items-center z-10 pointer-events-none pb-0"></div>
@@ -337,16 +330,16 @@
     </div>
   </footer>
 
-  <!-- ================= 모바일 랭킹 순위표 열기 플로팅 버튼 ================= -->
+  <!-- 모바일 랭킹 순위표 열기 플로팅 버튼 -->
   <button id="toggleRankBtn" title="실시간 순위표 열기" class="fixed top-4 right-3 z-40 lg:hidden px-3 py-2 rounded-xl bg-slate-900/90 border border-amber-500/40 text-amber-300 shadow-xl flex items-center gap-1.5 backdrop-blur-md active:scale-95 transition-all">
     <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
-    <span class="text-xs font-bold">순위표</span>
+    <span class="text-xs font-bold" id="mobileRankBtnLabel">순위표</span>
   </button>
 
   <!-- 모바일 딤 배경 오버레이 -->
   <div id="rankBackdrop" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"></div>
 
-  <!-- ================= 우측 실시간 랭킹 순위표 슬라이드 패널 ================= -->
+  <!-- 우측 실시간 랭킹 순위표 슬라이드 패널 -->
   <aside id="rankDrawer" class="fixed top-0 right-0 z-50 h-[100dvh] w-[310px] sm:w-[340px] xl:w-[380px] bg-slate-900/95 border-l border-slate-800/90 shadow-2xl backdrop-blur-xl flex flex-col transition-transform duration-300 ease-in-out transform translate-x-full lg:translate-x-0">
     <!-- 패널 상단 헤더 -->
     <div class="p-3.5 sm:p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/80">
@@ -356,9 +349,9 @@
         </div>
         <div>
           <h2 class="text-xs sm:text-sm font-black text-white flex items-center gap-1">
-            <span id="rankStageTitle" class="text-amber-400">3단</span> 실시간 랭킹
+            <span id="rankStageTitle" class="text-amber-400">3단</span> <span id="rankHeaderLabel">실시간 랭킹</span>
           </h2>
-          <p class="text-[10px] text-slate-400">최소 이동 & 빠른 시간 순위</p>
+          <p class="text-[10px] text-slate-400" id="rankSubLabel">최소 이동 & 빠른 시간 순위</p>
         </div>
       </div>
       <div class="flex items-center gap-1">
@@ -372,19 +365,17 @@
     </div>
 
     <!-- 단계별 탭 (3단 ~ 12단) -->
-    <div class="px-2.5 py-2 border-b border-slate-800/80 overflow-x-auto flex gap-1.5 scrollbar-thin" id="rankStageTabs">
-      <!-- 동적 탭 렌더링 -->
-    </div>
+    <div class="px-2.5 py-2 border-b border-slate-800/80 overflow-x-auto flex gap-1.5 scrollbar-thin" id="rankStageTabs"></div>
 
     <!-- 순위 리스트 표시 영역 -->
     <div class="flex-1 overflow-y-auto p-3 space-y-2" id="rankingListContainer">
-      <div class="text-center py-12 text-xs text-slate-400">
+      <div class="text-center py-12 text-xs text-slate-400" id="rankLoadingText">
         순위 데이터를 불러오는 중...
       </div>
     </div>
 
     <!-- 패널 하단 상태 정보 -->
-    <div class="p-3 border-t border-slate-800 text-[10px] text-slate-400 text-center bg-slate-950/40">
+    <div class="p-3 border-t border-slate-800 text-[10px] text-slate-400 text-center bg-slate-950/40" id="rankFooterLabel">
       클리어 성공 시 구글 시트에 즉시 등록됩니다.
     </div>
   </aside>
@@ -394,7 +385,7 @@
     <i data-lucide="help-circle" class="w-6 h-6"></i>
   </button>
 
-  <!-- ================= 튜토리얼 모달 ================= -->
+  <!-- 튜토리얼 모달 -->
   <div id="tutorialModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-200">
     <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden relative">
       <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/90">
@@ -431,14 +422,14 @@
             최소 이동 횟수 공식과 필승 전략
           </h3>
           <p class="text-xs text-slate-300" id="tutMathDesc1">
-            원판의 개수가 $n$개일 때, 최소 이동 횟수는 <strong>$2^n - 1$</strong>번입니다.
+            원판의 개수가 n개일 때, 최소 이동 횟수는 <strong>2ⁿ - 1</strong>번입니다.
           </p>
           <div class="p-2 bg-slate-900/80 rounded-xl text-[11px] font-mono text-indigo-300 border border-slate-800 flex justify-between">
-            <span>3단: 7회</span>
-            <span>4단: 15회</span>
-            <span>5단: 31회</span>
-            <span>8단: 255회</span>
-            <span>12단: 4095회</span>
+            <span>3: 7</span>
+            <span>4: 15</span>
+            <span>5: 31</span>
+            <span>8: 255</span>
+            <span>12: 4095</span>
           </div>
           <p class="text-[11px] text-slate-400 leading-normal" id="tutMathDesc2">
             💡 <strong>첫 수 공식:</strong> 총 원판 개수가 <strong>홀수</strong>라면 1번 원판을 바로 <strong>C 기둥</strong>으로, <strong>짝수</strong>라면 <strong>B 기둥</strong>으로 먼저 옮기면 최소 경로로 완성됩니다!
@@ -489,7 +480,7 @@
     </div>
   </div>
 
-  <!-- ================= 성공 클리어 축하 모달 ================= -->
+  <!-- 성공 클리어 축하 모달 -->
   <div id="clearModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden">
     <div class="bg-slate-900 border border-emerald-500/30 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative overflow-hidden">
       <div class="absolute -top-12 -right-12 w-32 h-32 bg-emerald-500/20 rounded-full blur-2xl"></div>
@@ -526,7 +517,7 @@
     </div>
   </div>
 
-  <!-- ================= 시간 초과 실패 모달 ================= -->
+  <!-- 시간 초과 실패 모달 -->
   <div id="failModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden">
     <div class="bg-slate-900 border border-rose-500/30 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative overflow-hidden">
       <div class="w-14 h-14 rounded-2xl bg-rose-500/20 border border-rose-400/40 text-rose-400 flex items-center justify-center mx-auto mb-3">
@@ -557,70 +548,87 @@
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxhuySO9Us_BQDv8m-y62NGwnWqLvWEDhIZ6CnchaDK7pRTaomIP6shWGPX1-LWZ4ux/exec";
 
     /* ========================================================
-       1. 다국어 사전 (한국어 기본 + 영어 / 중국어 / 러시아어 병기)
+       1. 다국어 사전 (단일 언어 완전 번역 전환)
     ======================================================== */
-    let currentSecondaryLang = 'ko';
+    let currentLang = 'ko';
 
     const i18n = {
-      headerTitle: { ko: '하노이의 탑 챌린지', en: 'Tower of Hanoi Challenge', zh: '汉诺塔挑战', ru: 'Челлендж Ханойской башни' },
+      langBarTitle: { ko: '언어 선택 / Language', en: 'Language', zh: '语言选择', ru: 'Выбор языка' },
+      headerTitle: { ko: '하노이의 탑 챌린지', en: 'Tower of Hanoi Challenge', zh: '汉诺塔挑战赛', ru: 'Ханойская башня' },
       headerSub: { 
         ko: '최소 이동 횟수로 모든 원판을 목표 기둥(C)으로 옮기세요!', 
         en: 'Move all disks to Peg C with minimum moves!', 
         zh: '以最少步数将所有圆盘移至目标柱(C)！', 
         ru: 'Переместите все диски на столб C за минимум ходов!' 
       },
-      btnTutorial: { ko: '게임 방법', en: 'How to Play', zh: '游戏玩法', ru: 'Как играть' },
+      btnTutorial: { ko: '게임 방법', en: 'How to Play', zh: '游戏玩法', ru: 'Правила' },
       btnPause: { ko: '일시정지', en: 'Pause', zh: '暂停', ru: 'Пауза' },
       btnResume: { ko: '계속하기', en: 'Resume', zh: '继续', ru: 'Продолжить' },
       btnRestart: { ko: '다시시작', en: 'Restart', zh: '重新开始', ru: 'Заново' },
-      stageLabel: { ko: '단계 선택 (3 ~ 12단)', en: 'Stage Selection (3~12)', zh: '关卡选择 (3~12阶)', ru: 'Выбор уровня (3-12)' },
+      stageLabel: { ko: '단계 선택 (3 ~ 12단)', en: 'Stage Select (3~12)', zh: '关卡选择 (3~12阶)', ru: 'Выбор уровня (3-12)' },
       clearedBadge: { ko: '성공', en: 'Cleared', zh: '通关', ru: 'Пройдено' },
       
-      statStage: { ko: '현재 단계 / 최소 이동', en: 'Stage / Min Moves', zh: '当前关卡 / 最小步数', ru: 'Уровень / Мин. ходов' },
+      statStage: { ko: '현재 단계 / 최소 이동', en: 'Stage / Min Moves', zh: '当前关卡 / 最少步数', ru: 'Уровень / Мин. ходов' },
       statMoves: { ko: '내 이동 횟수', en: 'Your Moves', zh: '移动步数', ru: 'Ваши ходы' },
-      statTimer: { ko: '남은 시간', en: 'Time Remaining', zh: '剩余时间', ru: 'Время' },
+      statTimer: { ko: '남은 시간', en: 'Time Left', zh: '剩余时间', ru: 'Осталось времени' },
+      movesUnit: { ko: '회', en: ' moves', zh: '步', ru: ' ходов' },
+      stageSuffix: { ko: '단', en: ' Disks', zh: '阶', ru: ' ур.' },
 
-      pegA: { ko: 'A 출발', en: 'A Start', zh: 'A 起点', ru: 'A Старт' },
-      pegB: { ko: 'B 경유', en: 'B Via', zh: 'B 中转', ru: 'B Буфер' },
-      pegC: { ko: 'C 목표', en: 'C Goal', zh: 'C 目标', ru: 'C Цель' },
+      pegA: { ko: 'A <span class="text-[10px] text-slate-400 font-medium">출발</span>', en: 'A <span class="text-[10px] text-slate-400 font-medium">Start</span>', zh: 'A <span class="text-[10px] text-slate-400 font-medium">起点</span>', ru: 'A <span class="text-[10px] text-slate-400 font-medium">Старт</span>' },
+      pegB: { ko: 'B <span class="text-[10px] text-slate-400 font-medium">경유</span>', en: 'B <span class="text-[10px] text-slate-400 font-medium">Via</span>', zh: 'B <span class="text-[10px] text-slate-400 font-medium">中转</span>', ru: 'B <span class="text-[10px] text-slate-400 font-medium">Буфер</span>' },
+      pegC: { ko: 'C <span class="text-[10px] text-emerald-300/80 font-medium">목표</span>', en: 'C <span class="text-[10px] text-emerald-300/80 font-medium">Goal</span>', zh: 'C <span class="text-[10px] text-emerald-300/80 font-medium">目标</span>', ru: 'C <span class="text-[10px] text-emerald-300/80 font-medium">Цель</span>' },
 
       hintDefault: { 
         ko: '원판을 클릭하거나 드래그하여 다른 기둥으로 옮기세요. (작은 원판 위에 큰 원판 금지)', 
         en: 'Click or drag disks to move. (Never place a larger disk on a smaller one)', 
-        zh: '点击或拖拽移动圆盘。(禁止大盘放在小盘上)', 
+        zh: '点击或拖拽移动圆盘。(禁止将大圆盘放在小圆盘上)', 
         ru: 'Нажимайте или перетаскивайте диски. (Нельзя класть больший диск на меньший)' 
       },
       hintPaused: { ko: '게임이 일시정지되었습니다.', en: 'Game is paused.', zh: '游戏已暂停。', ru: 'Игра на паузе.' },
 
-      loginTitle: { ko: '관산중학교 하노이의 탑 챌린지', en: 'Gwansan MS Tower of Hanoi', zh: '冠山中学汉诺塔挑战', ru: 'Челлендж средней школы Квансан' },
-      loginDesc: { ko: '학생 확인을 위해 학번과 이름을 입력해주세요.', en: 'Enter your student ID and name.', zh: '请输入学号与姓名以进行验证。', ru: 'Введите номер ученика и имя.' },
+      // 로그인 화면
+      loginBadge: { ko: '관산중학교 수학 탐구 활동', en: 'Gwansan MS Math Exploration', zh: '冠山中学数学探索活动', ru: 'Математический клуб Квансан' },
+      loginTitle: { ko: '하노이의 탑 챌린지', en: 'Tower of Hanoi Challenge', zh: '汉诺塔挑战赛', ru: 'Ханойская башня' },
+      loginDesc: { ko: '학생 확인을 위해 학번과 이름을 입력해주세요.', en: 'Please enter your student ID and name.', zh: '请输入学号与姓名以验证身份。', ru: 'Введите номер ученика и имя.' },
       loginId: { ko: '학번 (예: 10325 또는 1-3-25)', en: 'Student ID (e.g. 10325)', zh: '学号 (例: 10325)', ru: 'Номер ученика (напр. 10325)' },
       loginName: { ko: '이름', en: 'Name', zh: '姓名', ru: 'Имя' },
       loginBtn: { ko: '게임 시작하기', en: 'Start Game', zh: '开始游戏', ru: 'Начать игру' },
+      loginFootnote: { ko: '관산중학교 학생들의 창의적 문제해결력 신장을 위한 웹 프로그램', en: 'Web Program for Gwansan MS Creative Problem Solving', zh: '培养冠山中学学生创新思维与问题解决能力的网页程序', ru: 'Программа для развития логического мышления учащихся Квансан' },
 
       footerText: { 
         ko: '관산중학교 수학 탐구 교실 • 수학적 귀납법과 재귀 알고리즘 챌린지', 
-        en: 'Gwansan Middle School Math Lab • Mathematical Induction & Recursion', 
+        en: 'Gwansan Middle School Math Lab • Mathematical Induction & Recursion Challenge', 
         zh: '冠山中学数学探索课堂 • 数学归纳法与递归算法挑战', 
-        ru: 'Школа Квансан - Кабинет математики • Индукция и рекурсия' 
+        ru: 'Средняя школа Квансан • Челлендж математической индукции и рекурсии' 
       },
 
+      // 순위표
+      rankHeader: { ko: '실시간 랭킹', en: 'Leaderboard', zh: '实时排行', ru: 'Таблица лидеров' },
+      rankSub: { ko: '최소 이동 & 빠른 시간 순위', en: 'Fewest Moves & Fastest Time', zh: '最少步数与最快用时排行', ru: 'Минимум ходов и лучшее время' },
+      rankLoading: { ko: '순위 데이터를 불러오는 중...', en: 'Loading rankings...', zh: '正在加载排行榜...', ru: 'Загрузка рейтинга...' },
+      rankFooter: { ko: '클리어 성공 시 구글 시트에 즉시 등록됩니다.', en: 'Cleared records are synced to Google Sheets immediately.', zh: '通关成功后将即时同步至谷歌表格。', ru: 'Рекорды мгновенно сохраняются в Google Таблицах.' },
+      rankMobileBtn: { ko: '순위표', en: 'Rank', zh: '排行', ru: 'Топ' },
+      rankEmpty: { ko: '아직 등록된 기록이 없습니다.<br>첫 번째 클리어 주인공이 되어보세요!', en: 'No records yet.<br>Be the first challenger to clear!', zh: '暂无记录。<br>快来成为第一个通关者！', ru: 'Пока нет рекордов.<br>Станьте первым победителем!' },
+      rankError: { ko: '순위 데이터를 불러오지 못했습니다.<br>잠시 후 다시 시도해주세요.', en: 'Failed to load rankings.<br>Please try again in a moment.', zh: '加载排行失败。<br>请稍后再试。', ru: 'Не удалось загрузить данные.<br>Попробуйте позже.' },
+
+      // 튜토리얼
       tutTitle: { ko: '하노이의 탑 규칙 및 플레이 방법', en: 'Rules & How to Play', zh: '汉诺塔规则与玩法', ru: 'Правила и обучение' },
-      tutSub: { ko: '고대 수학 퍼즐의 원리와 필승 공식', en: 'Principles & Optimal Strategy', zh: '数学谜题原理与必胜公式', ru: 'Математические принципы и формула' },
+      tutSub: { ko: '고대 수학 퍼즐의 원리와 필승 공식', en: 'Mathematical Principles & Optimal Strategy', zh: '数学谜题原理与必胜公式', ru: 'Математические принципы и формула' },
       tutRulesTitle: { ko: '하노이의 탑 3대 기본 규칙', en: '3 Fundamental Rules', zh: '汉诺塔三大基本规则', ru: '3 основных правила' },
       tutRule1: { ko: '<strong>규칙 1:</strong> 한 번에 기둥 맨 위의 원판 1개만 옮길 수 있습니다.', en: '<strong>Rule 1:</strong> Only one disk can be moved at a time.', zh: '<strong>规则 1:</strong> 每次只能移动柱子最顶端的一个圆盘。', ru: '<strong>Правило 1:</strong> За один ход перемещается только 1 верхний диск.' },
       tutRule2: { ko: '<strong>규칙 2:</strong> 절대로 <strong>작은 원판 위에 큰 원판</strong>을 쌓을 수 없습니다.', en: '<strong>Rule 2:</strong> No disk may be placed on top of a smaller disk.', zh: '<strong>规则 2:</strong> 严禁将大圆盘叠放在小圆盘上方。', ru: '<strong>Правило 2:</strong> Нельзя класть больший диск на меньший.' },
       tutRule3: { ko: '<strong>규칙 3:</strong> 출발 기둥(A)의 모든 원판을 최종 목표 기둥(C)으로 동일한 순서로 옮겨야 합니다.', en: '<strong>Rule 3:</strong> All disks must be transferred from Peg A to Peg C in order.', zh: '<strong>规则 3:</strong> 必须将起点柱(A)的所有圆盘按相同顺序移至目标柱(C)。', ru: '<strong>Правило 3:</strong> Все диски со столба A должны быть перемещены на столб C.' },
       tutMathTitle: { ko: '최소 이동 횟수 공식과 필승 전략', en: 'Formula & Winning Strategy', zh: '最少步数公式与必胜策略', ru: 'Формула минимума и победная стратегия' },
-      tutMathDesc1: { ko: '원판 개수가 $n$개일 때, 최소 이동 횟수는 <strong>2ⁿ - 1</strong>번입니다.', en: 'For n disks, minimum moves = <strong>2ⁿ - 1</strong>.', zh: '当圆盘数为n时，最少移动步数为 <strong>2ⁿ - 1</strong> 次。', ru: 'Для n дисков минимальное число ходов: <strong>2ⁿ - 1</strong>.' },
-      tutMathDesc2: { ko: '💡 <strong>첫 수 공식:</strong> 총 원판 개수가 <strong>홀수</strong>면 1번 원판을 바로 <strong>C 기둥</strong>으로, <strong>짝수</strong>면 <strong>B 기둥</strong>으로 먼저 옮기면 최소 경로로 완성됩니다!', en: '💡 <strong>Tip:</strong> If total disks is <strong>ODD</strong>, move disk 1 to <strong>Peg C</strong> first. If <strong>EVEN</strong>, move to <strong>Peg B</strong>!', zh: '💡 <strong>技巧:</strong> 总盘数为<strong>奇数</strong>时第1步移至<strong>C柱</strong>；总盘数为<strong>偶数</strong>时第1步移至<strong>B柱</strong>！', ru: '💡 <strong>Совет:</strong> Если число дисков <strong>нечётное</strong>, кладите 1-й диск на <strong>C</strong>; если <strong>чётное</strong> - на <strong>B</strong>!' },
+      tutMathDesc1: { ko: '원판 개수가 n개일 때, 최소 이동 횟수는 <strong>2ⁿ - 1</strong>번입니다.', en: 'For n disks, the minimum number of moves is <strong>2ⁿ - 1</strong>.', zh: '当圆盘数为n时，最少移动步数为 <strong>2ⁿ - 1</strong> 次。', ru: 'Для n дисков минимальное число ходов: <strong>2ⁿ - 1</strong>.' },
+      tutMathDesc2: { ko: '💡 <strong>첫 수 공식:</strong> 총 원판 개수가 <strong>홀수</strong>면 1번 원판을 바로 <strong>C 기둥</strong>으로, <strong>짝수</strong>면 <strong>B 기둥</strong>으로 먼저 옮기면 최소 경로로 완성됩니다!', en: '💡 <strong>First Move Rule:</strong> If total disks is <strong>ODD</strong>, move disk 1 to <strong>Peg C</strong> first. If <strong>EVEN</strong>, move to <strong>Peg B</strong>!', zh: '💡 <strong>首步秘诀:</strong> 圆盘总数为<strong>奇数</strong>时第1步移至<strong>C柱</strong>；为<strong>偶数</strong>时第1步移至<strong>B柱</strong>！', ru: '💡 <strong>Первый ход:</strong> Если число дисков <strong>нечётное</strong>, кладите 1-й диск на <strong>C</strong>; если <strong>чётное</strong> - на <strong>B</strong>!' },
       tutDemoTitle: { ko: '3단계 자동 완성 시연 (7회 최단 경로)', en: 'Stage 3 Auto Demo (7 moves)', zh: '3阶自动演示 (7步最优解)', ru: 'Демо 3 уровня (7 ходов)' },
       tutRunDemoBtn: { ko: '시연 시작', en: 'Start Demo', zh: '开始演示', ru: 'Начать демо' },
       tutConfirmBtn: { ko: '확인했습니다!', en: 'Got it!', zh: '我明白了！', ru: 'Понятно!' },
 
+      // 모달 결과
       clearTitle: { ko: '스테이지 클리어!', en: 'Stage Cleared!', zh: '关卡通过！', ru: 'Уровень пройден!' },
-      clearSub: { ko: '성공 LED 램프에 불이 들어왔습니다.', en: 'Success LED indicator is now ON.', zh: '成功指示灯已点亮。', ru: 'Индикатор успеха зажжен.' },
-      clearStatMoves: { ko: '내 이동 횟수:', en: 'Your Moves:', zh: '实际步数:', ru: 'Ваши ходы:' },
+      clearSub: { ko: '실시간 순위표에 기록이 등록되었습니다.', en: 'Your score has been registered on the leaderboard.', zh: '成绩已记录至实时排行榜。', ru: 'Ваш результат занесен в таблицу лидеров.' },
+      clearStatMoves: { ko: '이동 횟수:', en: 'Moves:', zh: '移动步数:', ru: 'Ваши ходы:' },
       clearStatMin: { ko: '최소 이동:', en: 'Min Moves:', zh: '最小步数:', ru: 'Мин. ходов:' },
       clearStatTime: { ko: '남은 시간:', en: 'Time Left:', zh: '剩余时间:', ru: 'Осталось времени:' },
       clearBtnReplay: { ko: '다시 도전', en: 'Retry', zh: '再次挑战', ru: 'Повторить' },
@@ -635,17 +643,9 @@
       toastCleared: { ko: '축하합니다! 스테이지 성공!', en: 'Congratulations! Stage Cleared!', zh: '恭喜！通关成功！', ru: 'Поздравляем! Уровень пройден!' }
     };
 
-    function bText(key, mode = 'inline') {
-      const item = i18n[key];
-      if (!item) return '';
-      const ko = item.ko || '';
-      if (currentSecondaryLang === 'ko') return ko;
-      const sec = item[currentSecondaryLang] || '';
-      if (!sec) return ko;
-      if (mode === 'sub') {
-        return `<span>${ko}</span><span class="block text-[10px] opacity-75 font-normal tracking-tight">${sec}</span>`;
-      }
-      return `${ko} <span class="text-[11px] opacity-80 font-normal">(${sec})</span>`;
+    function t(key) {
+      if (!i18n[key]) return '';
+      return i18n[key][currentLang] || i18n[key]['ko'] || '';
     }
 
     /* ========================================================
@@ -690,7 +690,7 @@
     }
 
     /* ========================================================
-       3. 게임 상태 및 단계별 시간 제한 설정 (3단 ~ 12단)
+       3. 게임 상태 및 단계별 시간 제한 설정
     ======================================================== */
     const MIN_STAGE = 3;
     const MAX_STAGE = 12;
@@ -806,13 +806,14 @@
     }
 
     function resetAllRecords() {
-      if (confirm('모든 단계의 성공 LED 램프 기록을 초기화하시겠습니까?')) {
+      const confirmMsg = currentLang === 'ko' ? '모든 단계의 성공 LED 램프 기록을 초기화하시겠습니까?' : 'Reset all stage clear records?';
+      if (confirm(confirmMsg)) {
         clearedStages.clear();
         try {
           localStorage.removeItem(STORAGE_KEY);
         } catch (e) {}
         renderStageButtons();
-        showToast('성공 기록이 초기화되었습니다.');
+        showToast(currentLang === 'ko' ? '성공 기록이 초기화되었습니다.' : 'Records reset.');
       }
     }
 
@@ -822,6 +823,7 @@
     function renderStageButtons() {
       const container = document.getElementById('stageButtonsContainer');
       container.innerHTML = '';
+      const sSuffix = t('stageSuffix');
 
       for (let s = MIN_STAGE; s <= MAX_STAGE; s++) {
         const isSelected = (s === currentStage);
@@ -839,7 +841,7 @@
         }`;
         
         btn.innerHTML = `
-          <span>${s}단</span>
+          <span>${s}${sSuffix}</span>
           <span class="text-[9px] font-normal opacity-70">${s}D</span>
         `;
 
@@ -873,10 +875,9 @@
 
       const clearedCountText = document.getElementById('clearedCountText');
       if (clearedCountText) {
-        const clearedWord = i18n.clearedBadge[currentSecondaryLang] || '성공';
         clearedCountText.innerHTML = `
           <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block led-active"></span>
-          <span>${clearedWord}: ${clearedStages.size} / 10</span>
+          <span>${t('clearedBadge')}: ${clearedStages.size} / 10</span>
         `;
       }
     }
@@ -909,7 +910,6 @@
       renderStageButtons();
       startTimer();
 
-      // 현재 선택된 스테이지의 랭킹 동기화
       fetchRankings(currentStage);
     }
 
@@ -962,9 +962,10 @@
        7. UI 및 원판 동적 반응형 렌더링
     ======================================================== */
     function updateUI() {
-      document.getElementById('currentStageText').innerText = `${currentStage}단`;
+      document.getElementById('currentStageText').innerText = `${currentStage}${t('stageSuffix')}`;
       const minMoves = Math.pow(2, currentStage) - 1;
       document.getElementById('minMovesText').innerText = minMoves.toLocaleString();
+      document.getElementById('statMovesUnit').innerText = t('movesUnit');
       document.getElementById('moveCountText').innerText = moveCount.toLocaleString();
       updateTimerDisplay();
     }
@@ -1034,7 +1035,7 @@
         if (pegs[pegIndex].length === 0) return;
         selectedPegIndex = pegIndex;
         playTone(480, 'sine', 0.08, 0.15);
-        showToast(i18n.toastPicked[currentSecondaryLang] || '원판을 선택했습니다.');
+        showToast(t('toastPicked'));
         renderDisks();
       } else {
         if (selectedPegIndex === pegIndex) {
@@ -1051,7 +1052,7 @@
 
         if (targetTopDisk !== undefined && targetTopDisk < movingDisk) {
           playTone(220, 'sawtooth', 0.2, 0.25);
-          showToast(i18n.toastInvalid[currentSecondaryLang] || '더 큰 원판을 작은 원판 위에 올릴 수 없습니다!');
+          showToast(t('toastInvalid'));
           selectedPegIndex = null;
           renderDisks();
           return;
@@ -1078,7 +1079,6 @@
         markStageAsCleared(currentStage);
         playVictoryFanfare();
 
-        // 스프레드시트에 순위 데이터 전송
         submitScoreToSheet();
 
         try {
@@ -1090,13 +1090,13 @@
         } catch (e) {}
 
         const modal = document.getElementById('clearModal');
-        document.getElementById('modalResultMoves').innerText = `${moveCount}회`;
-        document.getElementById('modalResultMinMoves').innerText = `${Math.pow(2, currentStage) - 1}회`;
+        document.getElementById('modalResultMoves').innerText = `${moveCount}${t('movesUnit')}`;
+        document.getElementById('modalResultMinMoves').innerText = `${Math.pow(2, currentStage) - 1}${t('movesUnit')}`;
         document.getElementById('modalResultTime').innerText = formatTime(timeRemaining);
 
         const studentDesc = document.getElementById('modalClearStudentDesc');
         if (currentStudent) {
-          studentDesc.innerText = `관산중 ${currentStudent.id} ${currentStudent.name} 학생 달성!`;
+          studentDesc.innerText = `${currentStudent.id} ${currentStudent.name}`;
         }
 
         modal.classList.remove('hidden');
@@ -1104,7 +1104,7 @@
     }
 
     /* ========================================================
-       9. 구글 스프레드시트 실시간 랭킹 연동 (Apps Script)
+       9. 구글 스프레드시트 실시간 랭킹 연동
     ======================================================== */
     async function submitScoreToSheet() {
       if (!currentStudent || !currentStudent.id) return;
@@ -1136,7 +1136,7 @@
     async function fetchRankings(stage = currentRankViewStage) {
       currentRankViewStage = stage;
       const titleEl = document.getElementById('rankStageTitle');
-      if (titleEl) titleEl.innerText = `${stage}단`;
+      if (titleEl) titleEl.innerText = `${stage}${t('stageSuffix')}`;
 
       renderRankTabs();
       const container = document.getElementById('rankingListContainer');
@@ -1146,7 +1146,7 @@
       container.innerHTML = `
         <div class="text-center py-12 text-xs text-slate-400 flex flex-col items-center gap-2">
           <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-amber-400"></i>
-          <span>데이터 동기화 중...</span>
+          <span>${t('rankLoading')}</span>
         </div>
       `;
       lucide.createIcons();
@@ -1159,7 +1159,7 @@
         container.innerHTML = `
           <div class="text-center py-10 text-xs text-rose-400/90 px-4">
             <i data-lucide="alert-circle" class="w-6 h-6 mx-auto mb-1 text-rose-400"></i>
-            순위 데이터를 불러오지 못했습니다.<br>잠시 후 다시 시도해주세요.
+            ${t('rankError')}
           </div>
         `;
         lucide.createIcons();
@@ -1172,6 +1172,7 @@
       const tabsContainer = document.getElementById('rankStageTabs');
       if (!tabsContainer) return;
       tabsContainer.innerHTML = '';
+      const sSuffix = t('stageSuffix');
 
       for (let s = MIN_STAGE; s <= MAX_STAGE; s++) {
         const btn = document.createElement('button');
@@ -1181,7 +1182,7 @@
             ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold shadow-sm' 
             : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
         }`;
-        btn.innerText = `${s}단`;
+        btn.innerText = `${s}${sSuffix}`;
         btn.onclick = () => fetchRankings(s);
         tabsContainer.appendChild(btn);
       }
@@ -1193,12 +1194,15 @@
         container.innerHTML = `
           <div class="text-center py-12 text-xs text-slate-500 flex flex-col items-center gap-2">
             <i data-lucide="sparkles" class="w-5 h-5 text-amber-400/50"></i>
-            <span>아직 등록된 기록이 없습니다.<br>첫 번째 클리어 주인공이 되어보세요!</span>
+            <span>${t('rankEmpty')}</span>
           </div>
         `;
         lucide.createIcons();
         return;
       }
+
+      const movesUnit = t('movesUnit');
+      const timeLabel = currentLang === 'ko' ? '시간' : (currentLang === 'zh' ? '用时' : (currentLang === 'ru' ? 'Время' : 'Time'));
 
       container.innerHTML = list.map((item, idx) => {
         const rank = idx + 1;
@@ -1223,12 +1227,12 @@
                   ${isMe ? '<span class="text-[9px] bg-indigo-500 text-white px-1.5 py-0.2 rounded-full font-semibold">ME</span>' : ''}
                 </div>
                 <div class="text-[10px] text-slate-400">
-                  시간: <span class="font-mono text-slate-300 font-semibold">${formatTime(item.elapsedTime || 0)}</span>
+                  ${timeLabel}: <span class="font-mono text-slate-300 font-semibold">${formatTime(item.elapsedTime || 0)}</span>
                 </div>
               </div>
             </div>
             <div class="text-right shrink-0">
-              <div class="text-xs font-black text-indigo-400">${item.moves}회</div>
+              <div class="text-xs font-black text-indigo-400">${item.moves}${movesUnit}</div>
             </div>
           </div>
         `;
@@ -1320,9 +1324,11 @@
       demoStep = 0;
       demoPegs = [[3, 2, 1], [], []];
       renderDemoBoard();
-      document.getElementById('demoStepDesc').innerText = '시연 시작 버튼을 누르면 7단계 최단 이동 과정을 확인할 수 있습니다.';
+      document.getElementById('demoStepDesc').innerText = currentLang === 'ko' 
+        ? '시연 시작 버튼을 누르면 7단계 최단 이동 과정을 확인할 수 있습니다.' 
+        : 'Click Start Demo to watch the 7-step optimal solution.';
       const runBtn = document.getElementById('tutRunDemoBtnText');
-      if (runBtn) runBtn.innerText = i18n.tutRunDemoBtn[currentSecondaryLang] || '시연 시작';
+      if (runBtn) runBtn.innerText = t('tutRunDemoBtn');
     }
 
     function renderDemoBoard() {
@@ -1348,7 +1354,9 @@
       if (demoStep >= demoMoves.length) {
         clearInterval(demoInterval);
         demoInterval = null;
-        document.getElementById('demoStepDesc').innerText = '🎉 7회 만에 완성되었습니다! 홀수 개는 첫 수를 C 기둥으로 보냅니다.';
+        document.getElementById('demoStepDesc').innerText = currentLang === 'ko'
+          ? '🎉 7회 만에 완성되었습니다! 홀수 개는 첫 수를 C 기둥으로 보냅니다.'
+          : '🎉 Cleared in 7 moves! For odd count, first move goes to Peg C.';
         playVictoryFanfare();
         return;
       }
@@ -1359,7 +1367,7 @@
       demoStep++;
 
       const pegNames = ['A', 'B', 'C'];
-      document.getElementById('demoStepDesc').innerText = `[${demoStep}단계 / 7] 원판 ${move.disk}을(를) ${pegNames[move.from]} ➔ ${pegNames[move.to]} 기둥으로 이동`;
+      document.getElementById('demoStepDesc').innerText = `[${demoStep} / 7] Disk ${move.disk} : ${pegNames[move.from]} ➔ ${pegNames[move.to]}`;
       playTone(550 + demoStep * 40, 'triangle', 0.08, 0.12);
       renderDemoBoard();
     }
@@ -1368,81 +1376,101 @@
       if (demoInterval) {
         clearInterval(demoInterval);
         demoInterval = null;
-        document.getElementById('tutRunDemoBtnText').innerText = i18n.tutRunDemoBtn[currentSecondaryLang] || '시연 재개';
+        document.getElementById('tutRunDemoBtnText').innerText = t('tutRunDemoBtn');
       } else {
         if (demoStep >= demoMoves.length) {
           resetDemoBoard();
         }
-        document.getElementById('tutRunDemoBtnText').innerText = '일시정지';
+        document.getElementById('tutRunDemoBtnText').innerText = t('btnPause');
         runDemoStep();
         demoInterval = setInterval(runDemoStep, 900);
       }
     }
 
     /* ========================================================
-       12. 다국어 업데이트 적용 함수
+       12. 다국어 업데이트 적용 핵심 함수
     ======================================================== */
     function applyLanguage() {
-      document.getElementById('headerTitle').innerHTML = bText('headerTitle', 'inline');
-      document.getElementById('headerSub').innerHTML = bText('headerSub', 'inline');
+      document.getElementById('langBarTitle').innerText = t('langBarTitle');
+      document.getElementById('headerTitle').innerText = t('headerTitle');
+      document.getElementById('headerSub').innerText = t('headerSub');
 
-      document.getElementById('btnTutorialText').innerText = i18n.btnTutorial[currentSecondaryLang] || '게임 방법';
-      document.getElementById('pauseBtnText').innerText = isPaused ? (i18n.btnResume[currentSecondaryLang] || '계속하기') : (i18n.btnPause[currentSecondaryLang] || '일시정지');
-      document.getElementById('restartBtnText').innerText = i18n.btnRestart[currentSecondaryLang] || '다시시작';
-      document.getElementById('resumeBtnText').innerText = i18n.btnResume[currentSecondaryLang] || '계속하기';
+      document.getElementById('btnTutorialText').innerText = t('btnTutorial');
+      document.getElementById('pauseBtnText').innerText = isPaused ? t('btnResume') : t('btnPause');
+      document.getElementById('restartBtnText').innerText = t('btnRestart');
+      document.getElementById('resumeBtnText').innerText = t('btnResume');
 
-      document.getElementById('stageSelectLabel').innerHTML = bText('stageLabel', 'inline');
-      document.getElementById('statStageLabel').innerHTML = bText('statStage', 'inline');
-      document.getElementById('statMovesLabel').innerHTML = bText('statMoves', 'inline');
-      document.getElementById('statTimerLabel').innerHTML = bText('statTimer', 'inline');
+      document.getElementById('stageSelectLabel').innerText = t('stageLabel');
+      document.getElementById('statStageLabel').innerText = t('statStage');
+      document.getElementById('statMovesLabel').innerText = t('statMoves');
+      document.getElementById('statTimerLabel').innerText = t('statTimer');
+      document.getElementById('statMovesUnit').innerText = t('movesUnit');
 
-      document.getElementById('pegLabel0').innerHTML = bText('pegA', 'inline');
-      document.getElementById('pegLabel1').innerHTML = bText('pegB', 'inline');
-      document.getElementById('pegLabel2').innerHTML = bText('pegC', 'inline');
+      document.getElementById('pegLabel0').innerHTML = t('pegA');
+      document.getElementById('pegLabel1').innerHTML = t('pegB');
+      document.getElementById('pegLabel2').innerHTML = t('pegC');
 
-      document.getElementById('gameHintMsg').innerHTML = isPaused ? bText('hintPaused', 'inline') : bText('hintDefault', 'inline');
-      document.getElementById('footerText').innerHTML = bText('footerText', 'inline');
+      document.getElementById('gameHintMsg').innerText = isPaused ? t('hintPaused') : t('hintDefault');
+      document.getElementById('footerText').innerText = t('footerText');
 
+      // 랭킹 패널
+      document.getElementById('rankHeaderLabel').innerText = t('rankHeader');
+      document.getElementById('rankSubLabel').innerText = t('rankSub');
+      document.getElementById('rankFooterLabel').innerText = t('rankFooter');
+      document.getElementById('mobileRankBtnLabel').innerText = t('rankMobileBtn');
+      document.getElementById('rankStageTitle').innerText = `${currentRankViewStage}${t('stageSuffix')}`;
+
+      // 로그인 화면
+      const loginBadgeEl = document.getElementById('loginBadge');
+      if (loginBadgeEl) loginBadgeEl.innerText = t('loginBadge');
       const loginTitleEl = document.getElementById('loginTitle');
-      if (loginTitleEl) loginTitleEl.innerHTML = bText('loginTitle', 'inline');
+      if (loginTitleEl) loginTitleEl.innerText = t('loginTitle');
       const loginDescEl = document.getElementById('loginDesc');
-      if (loginDescEl) loginDescEl.innerHTML = bText('loginDesc', 'inline');
+      if (loginDescEl) loginDescEl.innerText = t('loginDesc');
       const loginLabelIdEl = document.getElementById('loginLabelId');
-      if (loginLabelIdEl) loginLabelIdEl.innerHTML = bText('loginId', 'inline');
+      if (loginLabelIdEl) loginLabelIdEl.innerText = t('loginId');
       const loginLabelNameEl = document.getElementById('loginLabelName');
-      if (loginLabelNameEl) loginLabelNameEl.innerHTML = bText('loginName', 'inline');
+      if (loginLabelNameEl) loginLabelNameEl.innerText = t('loginName');
       const loginBtnLabelEl = document.getElementById('loginBtnLabel');
-      if (loginBtnLabelEl) loginBtnLabelEl.innerHTML = bText('loginBtn', 'inline');
+      if (loginBtnLabelEl) loginBtnLabelEl.innerText = t('loginBtn');
+      const loginFootnoteEl = document.getElementById('loginFootnote');
+      if (loginFootnoteEl) loginFootnoteEl.innerText = t('loginFootnote');
 
-      document.getElementById('tutModalTitle').innerHTML = bText('tutTitle', 'inline');
-      document.getElementById('tutModalSub').innerHTML = bText('tutSub', 'inline');
-      document.getElementById('tutRulesTitle').innerHTML = bText('tutRulesTitle', 'inline');
-      document.getElementById('tutRule1').innerHTML = bText('tutRule1', 'inline');
-      document.getElementById('tutRule2').innerHTML = bText('tutRule2', 'inline');
-      document.getElementById('tutRule3').innerHTML = bText('tutRule3', 'inline');
-      document.getElementById('tutMathTitle').innerHTML = bText('tutMathTitle', 'inline');
-      document.getElementById('tutMathDesc1').innerHTML = bText('tutMathDesc1', 'inline');
-      document.getElementById('tutMathDesc2').innerHTML = bText('tutMathDesc2', 'inline');
-      document.getElementById('tutDemoTitle').innerHTML = bText('tutDemoTitle', 'inline');
-      document.getElementById('confirmTutorialBtn').innerText = i18n.tutConfirmBtn[currentSecondaryLang] || '확인했습니다!';
+      // 튜토리얼 모달
+      document.getElementById('tutModalTitle').innerText = t('tutTitle');
+      document.getElementById('tutModalSub').innerText = t('tutSub');
+      document.getElementById('tutRulesTitle').innerHTML = `<i data-lucide="shield-alert" class="w-4 h-4 text-indigo-400"></i> ${t('tutRulesTitle')}`;
+      document.getElementById('tutRule1').innerHTML = t('tutRule1');
+      document.getElementById('tutRule2').innerHTML = t('tutRule2');
+      document.getElementById('tutRule3').innerHTML = t('tutRule3');
+      document.getElementById('tutMathTitle').innerHTML = `<i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i> ${t('tutMathTitle')}`;
+      document.getElementById('tutMathDesc1').innerHTML = t('tutMathDesc1');
+      document.getElementById('tutMathDesc2').innerHTML = t('tutMathDesc2');
+      document.getElementById('tutDemoTitle').innerText = t('tutDemoTitle');
+      document.getElementById('tutRunDemoBtnText').innerText = t('tutRunDemoBtn');
+      document.getElementById('confirmTutorialBtn').innerText = t('tutConfirmBtn');
 
-      document.getElementById('modalClearTitle').innerHTML = bText('clearTitle', 'inline');
-      document.getElementById('modalClearSub').innerHTML = bText('clearSub', 'inline');
-      document.getElementById('modalStatMovesLabel').innerText = i18n.clearStatMoves[currentSecondaryLang] || '이동 횟수:';
-      document.getElementById('modalStatMinMovesLabel').innerText = i18n.clearStatMin[currentSecondaryLang] || '최소 이동:';
-      document.getElementById('modalStatTimeLabel').innerText = i18n.clearStatTime[currentSecondaryLang] || '남은 시간:';
-      document.getElementById('modalReplayBtn').innerText = i18n.clearBtnReplay[currentSecondaryLang] || '다시 도전';
-      document.getElementById('modalNextBtn').innerText = i18n.clearBtnNext[currentSecondaryLang] || '다음 단계 도전';
+      // 클리어/실패 모달
+      document.getElementById('modalClearTitle').innerText = t('clearTitle');
+      document.getElementById('modalClearSub').innerText = t('clearSub');
+      document.getElementById('modalStatMovesLabel').innerText = t('clearStatMoves');
+      document.getElementById('modalStatMinMovesLabel').innerText = t('clearStatMin');
+      document.getElementById('modalStatTimeLabel').innerText = t('clearStatTime');
+      document.getElementById('modalReplayBtn').innerText = t('clearBtnReplay');
+      document.getElementById('modalNextBtn').innerText = t('clearBtnNext');
 
-      document.getElementById('modalFailTitle').innerHTML = bText('failTitle', 'inline');
-      document.getElementById('modalFailSub').innerHTML = bText('failSub', 'inline');
-      document.getElementById('modalFailRetryBtn').innerText = i18n.failRetry[currentSecondaryLang] || '다시 시도하기';
+      document.getElementById('modalFailTitle').innerText = t('failTitle');
+      document.getElementById('modalFailSub').innerText = t('failSub');
+      document.getElementById('modalFailRetryBtn').innerText = t('failRetry');
 
+      updateUI();
       renderStageButtons();
+      renderRankTabs();
+      lucide.createIcons();
     }
 
     function setLanguage(lang) {
-      currentSecondaryLang = lang;
+      currentLang = lang;
       try {
         localStorage.setItem('hanoi_lang_pref', lang);
       } catch (e) {}
@@ -1493,10 +1521,9 @@
     window.onload = function() {
       loadStudentInfo();
       loadClearedStages();
-      loadSavedLang();
       initDragAndDrop();
 
-      // 로그인 폼 처리
+      // 학생 로그인
       const loginForm = document.getElementById('studentLoginForm');
       loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -1505,7 +1532,7 @@
         const errEl = document.getElementById('loginErrorText');
 
         if (!idVal || !nameVal) {
-          errEl.innerText = '학번과 이름을 모두 입력해주세요.';
+          errEl.innerText = currentLang === 'ko' ? '학번과 이름을 모두 입력해주세요.' : 'Please enter both student ID and name.';
           errEl.classList.remove('hidden');
           return;
         }
@@ -1515,7 +1542,6 @@
         playTone(600, 'sine', 0.12, 0.15);
       });
 
-      // 로그아웃 버튼
       document.getElementById('logoutBtn').addEventListener('click', () => {
         clearStudentInfo();
         document.getElementById('studentIdInput').value = '';
@@ -1525,14 +1551,14 @@
 
       checkStudentLogin();
 
-      // 언어 선택 버튼
+      // 언어 전환 버튼 클릭 이벤트
       document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           setLanguage(btn.dataset.lang);
         });
       });
 
-      // 상단 컨트롤
+      // 컨트롤 버튼
       document.getElementById('pauseBtn').addEventListener('click', () => {
         isPaused = !isPaused;
         const overlay = document.getElementById('pauseOverlay');
@@ -1540,23 +1566,21 @@
         if (isPaused) {
           overlay.classList.remove('hidden');
           pauseIcon.setAttribute('data-lucide', 'play');
-          document.getElementById('pauseBtnText').innerText = i18n.btnResume[currentSecondaryLang] || '계속하기';
+          document.getElementById('pauseBtnText').innerText = t('btnResume');
         } else {
           overlay.classList.add('hidden');
           pauseIcon.setAttribute('data-lucide', 'pause');
-          document.getElementById('pauseBtnText').innerText = i18n.btnPause[currentSecondaryLang] || '일시정지';
+          document.getElementById('pauseBtnText').innerText = t('btnPause');
         }
         applyLanguage();
-        lucide.createIcons();
       });
 
       document.getElementById('resumeBtn').addEventListener('click', () => {
         isPaused = false;
         document.getElementById('pauseOverlay').classList.add('hidden');
         document.getElementById('pauseIcon').setAttribute('data-lucide', 'pause');
-        document.getElementById('pauseBtnText').innerText = i18n.btnPause[currentSecondaryLang] || '일시정지';
+        document.getElementById('pauseBtnText').innerText = t('btnPause');
         applyLanguage();
-        lucide.createIcons();
       });
 
       document.getElementById('restartBtn').addEventListener('click', () => {
@@ -1567,14 +1591,13 @@
         resetAllRecords();
       });
 
-      // 튜토리얼 모달 트리거
+      // 모달 트리거
       document.getElementById('tutorialBtn').addEventListener('click', openTutorial);
       document.getElementById('floatingTutBtn').addEventListener('click', openTutorial);
       document.getElementById('closeTutorialBtn').addEventListener('click', closeTutorial);
       document.getElementById('confirmTutorialBtn').addEventListener('click', closeTutorial);
       document.getElementById('tutRunDemoBtn').addEventListener('click', toggleAutoDemo);
 
-      // 클리어 모달 버튼
       document.getElementById('modalReplayBtn').addEventListener('click', () => {
         initGame();
       });
@@ -1586,12 +1609,11 @@
         initGame();
       });
 
-      // 실패 모달 버튼
       document.getElementById('modalFailRetryBtn').addEventListener('click', () => {
         initGame();
       });
 
-      // 슬라이드 패널 토글 (모바일 / 태블릿 소형 화면)
+      // 모바일 슬라이드 패널 토글
       const rankDrawer = document.getElementById('rankDrawer');
       const rankBackdrop = document.getElementById('rankBackdrop');
 
@@ -1612,13 +1634,15 @@
         fetchRankings(currentRankViewStage);
       });
 
-      // 윈도우 리사이즈 대응
       window.addEventListener('resize', () => {
         renderDisks();
       });
 
-      lucide.createIcons();
+      // 게임 기본 초기화 진행
       initGame();
+
+      // 저장된 언어 불러오기 및 전체 적용
+      loadSavedLang();
     };
   </script>
 </body>
